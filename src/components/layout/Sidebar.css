@@ -1,0 +1,83 @@
+/* Styles pour la barre latérale */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 16rem;
+    padding: 2rem 1rem;
+    background: linear-gradient(180deg, #1a0000 0%, #4d0000 100%);
+    box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+.sidebar-title {
+    color: var(--white);
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+}
+
+.sidebar-divider {
+    border-color: rgba(255, 255, 255, 0.1);
+    margin: 1rem 0;
+}
+
+/* Styles pour les liens de navigation */
+.nav-link {
+    color: var(--white) !important;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    opacity: 0.8;
+    display: flex;
+    align-items: center;
+}
+
+.nav-link i {
+    margin-right: 1rem;
+    font-size: 1.25rem;
+    width: 1.5rem;
+    text-align: center;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--white) !important;
+    opacity: 1;
+    text-decoration: none;
+}
+
+.nav-link.active {
+    background-color: var(--primary) !important;
+    color: var(--white) !important;
+    opacity: 1;
+    box-shadow: 0 4px 15px rgba(198, 40, 40, 0.2);
+}
+
+/* Ajustement pour le contenu principal */
+.content {
+    margin-left: 16rem;
+    padding: 0;
+    min-height: 100vh;
+    background-color: var(--background);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .content {
+        margin-left: 0;
+    }
+}

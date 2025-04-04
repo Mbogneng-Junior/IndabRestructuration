@@ -1,0 +1,835 @@
+/* Variables globales */
+:root {
+    --primary: #c62828;
+    --primary-light: #ff5f52;
+    --primary-dark: #8e0000;
+    --secondary: #1a1f3c;
+    --secondary-light: #434868;
+    --secondary-dark: #000014;
+    --success: #2e7d32;
+    --danger: #c62828;
+    --background: #f8f9fa;
+    --white: #ffffff;
+    --gray: #6c757d;
+    --border: rgba(0, 0, 0, 0.125);
+    --gray-100: #f8f9fa;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-400: #ced4da;
+    --gray-500: #adb5bd;
+    --gray-600: #6c757d;
+    --gray-700: #495057;
+    --gray-800: #343a40;
+    --gray-900: #212529;
+}
+
+/* Style général */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background);
+    color: var(--secondary);
+}
+
+/* En-tête */
+.header-container {
+    background: linear-gradient(135deg, #2c0516 0%, #8B0000 100%);
+    color: white;
+    padding: 4rem 2rem;
+    border-radius: 0;
+    margin-bottom: 2rem;
+}
+
+.app-title {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: white;
+}
+
+.app-subtitle {
+    font-size: 1.25rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+}
+
+.explore-button {
+    background-color: #ffffff !important;
+    color: #2c0516 !important;
+    border: none !important;
+    padding: 1rem 2rem !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    border-radius: 50px !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.3s ease !important;
+}
+
+.explore-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Styles pour la barre latérale */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 16rem;
+    background: linear-gradient(180deg, #1a0000 0%, #4d0000 100%);
+    box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-logo {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1rem;
+}
+
+.sidebar-title {
+    color: #ffffff;
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.sidebar-body {
+    flex: 1;
+    padding: 1.5rem 1rem;
+}
+
+.sidebar-footer {
+    padding: 1rem;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.nav-menu {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    font-weight: 400;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    border-radius: 0.25rem;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff !important;
+}
+
+.nav-link.active {
+    background-color: #c62828 !important;
+    color: #ffffff !important;
+}
+
+.nav-link i {
+    width: 1.5rem;
+    text-align: center;
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+}
+
+/* Style pour les cartes de statistiques */
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 0.75rem;
+    height: 100%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.stat-icon-wrapper {
+    position: relative;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.stat-icon {
+    font-size: 1.1rem;
+    color: #2c0516;
+    position: relative;
+    z-index: 2;
+}
+
+.stat-icon-bg {
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 30px;
+    background-color: rgba(44, 5, 22, 0.1);
+    border-radius: 50%;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2c0516;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #666;
+    margin-bottom: 0.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-detail {
+    font-size: 0.7rem;
+    color: #999;
+}
+
+/* Styles pour les filtres */
+.filter-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.filter-title {
+    color: #2c0516;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    font-size: 1rem;
+}
+
+.filter-group {
+    margin-bottom: 1.25rem;
+}
+
+.filter-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Styles pour les graphiques */
+.chart-container {
+    background: white;
+    border-radius: 10px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 1.5rem;
+}
+
+.chart-title {
+    color: #2c0516;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+/* Contenu principal */
+.content {
+    margin-left: 250px;
+    padding: 2rem;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+/* Utilitaires */
+.text-center {
+    text-align: center !important;
+}
+
+.mb-1 { margin-bottom: 0.25rem !important; }
+.mb-2 { margin-bottom: 0.5rem !important; }
+.mb-3 { margin-bottom: 1rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+.mb-5 { margin-bottom: 3rem !important; }
+
+.mt-1 { margin-top: 0.25rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mt-3 { margin-top: 1rem !important; }
+.mt-4 { margin-top: 1.5rem !important; }
+.mt-5 { margin-top: 3rem !important; }
+
+/* Responsive */
+@media (max-width: 992px) {
+    .content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+    
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+    
+    .chart-card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Styles pour la page d'analyse de santé */
+.interpretation-table {
+    margin-top: 1rem;
+}
+
+.interpretation-table th {
+    background-color: var(--secondary);
+    color: var(--white);
+    font-weight: 600;
+    padding: 1rem;
+}
+
+.interpretation-table td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+.interpretation-table tr:hover {
+    background-color: rgba(26, 31, 60, 0.05);
+}
+
+/* Cartes de statistiques de santé */
+.health-stats-card {
+    background: var(--white);
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.health-stats-card .card-header {
+    background-color: var(--secondary);
+    color: var(--white);
+    border-radius: 15px 15px 0 0;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+}
+
+.health-stats-card .card-body {
+    padding: 1.5rem;
+}
+
+/* Graphiques */
+.graph-container {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+/* Filtres */
+.filter-section {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.filter-title {
+    color: var(--secondary);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.filter-group {
+    margin-bottom: 1.5rem;
+}
+
+.filter-label {
+    color: var(--secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Statistiques détaillées */
+.detailed-stats {
+    background: var(--white);
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--gray);
+    margin-bottom: 0;
+}
+
+/* Graphiques spécifiques */
+#top-health-issues,
+#top-unavailability-reasons,
+#temporary-unavailability-chart,
+#geographic-health-analysis,
+#health-issues-chart {
+    margin-bottom: 1rem;
+}
+
+/* Styles pour la page d'analyse des campagnes */
+.campaign-container {
+    padding: 2rem;
+}
+
+.campaign-container .header-section {
+    margin-bottom: 2rem;
+}
+
+.campaign-container h2 {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.campaign-container .text-muted {
+    color: var(--gray-600) !important;
+}
+
+/* Styles pour les filtres */
+.filter-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.filter-card .card-body {
+    padding: 1.5rem;
+}
+
+.filter-section label {
+    color: var(--secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Styles pour les statistiques */
+.stat-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    height: 100%;
+}
+
+.stat-card .card-body {
+    padding: 1.5rem;
+}
+
+.stat-card .card-title {
+    color: var(--secondary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+}
+
+.stat-card .text-primary,
+.stat-card .text-success,
+.stat-card .text-info {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+/* Styles pour les graphiques */
+.chart-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.chart-card .card-header {
+    background-color: var(--secondary);
+    color: var(--white);
+    border-radius: 15px 15px 0 0;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+}
+
+.chart-card .card-body {
+    padding: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .campaign-container {
+        padding: 1rem;
+    }
+    
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+    
+    .chart-card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Styles pour la page de rétention des donneurs */
+.retention-container {
+    padding: 2rem;
+}
+
+.retention-container .card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.retention-container .card-header {
+    background-color: var(--secondary);
+    color: var(--white);
+    border-radius: 15px 15px 0 0;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+}
+
+.retention-container .card-body {
+    padding: 1.5rem;
+}
+
+.retention-container h2 {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.retention-container .text-muted {
+    color: var(--gray-600) !important;
+}
+
+/* Styles pour les statistiques */
+.retention-container .h6 {
+    color: var(--secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.retention-container .h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+/* Styles pour les filtres */
+.retention-container label {
+    color: var(--secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.retention-container .DateInput_input {
+    font-size: 0.875rem;
+    padding: 0.5rem;
+}
+
+/* Styles pour les graphiques */
+.retention-container .spinner-grow {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .retention-container {
+        padding: 1rem;
+    }
+    
+    .retention-container .card {
+        margin-bottom: 1rem;
+    }
+    
+    .retention-container .h3 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Styles pour la page de feedback */
+.feedback-container {
+    padding: 2rem;
+}
+
+.feedback-container .header-section {
+    margin-bottom: 2rem;
+}
+
+.feedback-container h2 {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.feedback-container .text-muted {
+    color: var(--gray-600) !important;
+}
+
+.feedback-form-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.feedback-form-card .card-body {
+    padding: 2rem;
+}
+
+.feedback-container label {
+    color: var(--secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.feedback-container .form-control {
+    border-radius: 8px;
+    border: 1px solid var(--gray-300);
+    padding: 0.75rem 1rem;
+}
+
+.feedback-container .form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(255, 65, 54, 0.25);
+}
+
+.contact-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.contact-card .card-header {
+    background-color: var(--secondary);
+    color: var(--white);
+    border-radius: 15px 15px 0 0;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+}
+
+.contact-card .card-body {
+    padding: 1.5rem;
+}
+
+.contact-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.contact-card li {
+    margin-bottom: 0.5rem;
+    color: var(--gray-700);
+}
+
+.contact-card i {
+    color: var(--primary);
+    width: 20px;
+}
+
+/* Style du slider de notation */
+.rc-slider-track {
+    background-color: var(--primary);
+}
+
+.rc-slider-handle {
+    border-color: var(--primary);
+}
+
+.rc-slider-handle:hover,
+.rc-slider-handle:focus {
+    border-color: var(--primary);
+}
+
+.rc-slider-dot-active {
+    border-color: var(--primary);
+}
+
+/* Messages de statut */
+.text-success {
+    color: var(--success) !important;
+    font-weight: 500;
+}
+
+.text-danger {
+    color: var(--danger) !important;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .feedback-container {
+        padding: 1rem;
+    }
+    
+    .feedback-form-card .card-body {
+        padding: 1.5rem;
+    }
+}
+
+/* Styles pour la page de prédiction */
+.prediction-container {
+    padding: 2rem;
+}
+
+.prediction-container .header-section {
+    margin-bottom: 2rem;
+}
+
+.prediction-container h2 {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.prediction-container .text-muted {
+    color: var(--gray-600) !important;
+}
+
+.prediction-form-card,
+.prediction-result-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.prediction-form-card .card-header,
+.prediction-result-card .card-header {
+    background-color: var(--secondary);
+    color: var(--white);
+    border-radius: 15px 15px 0 0;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+}
+
+.prediction-form-card .card-body,
+.prediction-result-card .card-body {
+    padding: 1.5rem;
+}
+
+.prediction-container label {
+    color: var(--secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.prediction-container .form-control {
+    border-radius: 8px;
+    border: 1px solid var(--gray-300);
+    padding: 0.75rem 1rem;
+}
+
+.prediction-container .form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem rgba(255, 65, 54, 0.25);
+}
+
+.prediction-container .btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+}
+
+.prediction-container .btn-primary:hover {
+    background-color: #ff1f1f;
+    border-color: #ff1f1f;
+}
+
+/* Messages de résultat */
+.prediction-result-card h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.prediction-result-card .text-success {
+    color: var(--success) !important;
+}
+
+.prediction-result-card .text-danger {
+    color: var(--danger) !important;
+}
+
+.prediction-result-card .text-warning {
+    color: var(--warning) !important;
+}
+
+.prediction-result-card hr {
+    margin: 1.5rem 0;
+    border-color: var(--gray-200);
+}
+
+.prediction-result-card .small {
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .prediction-container {
+        padding: 1rem;
+    }
+    
+    .prediction-form-card,
+    .prediction-result-card {
+        margin-bottom: 1rem;
+    }
+    
+    .prediction-form-card .card-body,
+    .prediction-result-card .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Styles pour les titres */
+h1, h2, h3, h4, h5, h6 {
+    color: #000000;
+    font-weight: 600;
+}
+
+.text-primary {
+    color: var(--primary) !important;
+}
