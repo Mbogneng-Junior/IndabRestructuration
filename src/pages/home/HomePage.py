@@ -231,13 +231,7 @@ class HomePage:
                                className="app-title text-center mb-2"),
                         html.P("Analyse et Optimisation des Campagnes de Don de Sang en Afrique",
                               className="app-subtitle text-center mb-4"),
-                        html.Div([
-                            dbc.Button(
-                                "Explorer le Dashboard",
-                                href="/donor-profiles",
-                                className="explore-button mx-auto"
-                            )
-                        ], className="text-center mb-5")
+                        
                     ], width=12)
                 ])
             ], fluid=True, className="header-container"),
@@ -322,7 +316,7 @@ class HomePage:
                     dbc.Col([
                         dbc.Card([
                             dbc.CardBody([
-                                html.H5("Filtres", className="filter-title mb-4"),
+                                html.H5("Filtres", className="filter-title mb-4 text-bleu"),
                                 html.Div([
                                     html.Label("Localisation", className="filter-label"),
                                     dcc.Dropdown(
@@ -406,3 +400,16 @@ class HomePage:
                 ])
             ], fluid=True)
         ])
+
+
+
+"""Je veux que tu mettes un menu Cartographie de la Répartition sur le sidebar Indaba_CompétitionStructure/src/components/layout/Sidebar.py et dans ce menu tu dois : 
+	--> Mettre la carte qui est deja la. dans la page Indaba_CompétitionStructure/src/pages/home/HomePage.py puis le filtre doit etre comme ceci
+	
+		.. La ville : on selectionne une ville(Douala, Yaoundé, Bafoussam) ça zoom directement sur la carte et sa fait un affichage par arrondissement de cette ville
+		.. L'arrondissement : on selection un arrodissement sa zoom directement sur la carte et sa fait un affichage par quartier de cette arrondissement
+		( Remarque : on charge les arrondissements de la villes a la selection de la dite ville )
+		.. Filtre sur la periode.
+	--> Diagramme en barre de la repartition des donneurs par arrondissement
+	--> Diagramme en barre de la repartition des donneurs par quartier
+	--> Diagramme en barre de la repartition des donneurs par ville"""

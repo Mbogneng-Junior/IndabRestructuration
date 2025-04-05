@@ -7,52 +7,91 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 css_path = os.path.join(current_dir, 'Sidebar.css')
 
 class Sidebar:
+    def __init__(self):
+        pass
+        
     def render(self):
         """Rendu de la barre latérale"""
         return html.Div([
-            # Logo et titre
+            # Header
             html.Div([
-                html.Img(src="/assets/images/logo.png", className="logo"),
-                html.H1("Indaba", className="brand-text")
-            ], className="brand"),
+                html.Img(src="/assets/images/logo.png", className="sidebar-logo"),
+                
+            ], className="sidebar-header"),
             
-            # Navigation
-            html.Nav([
-                dbc.Nav([
-                    dbc.NavLink([
-                        html.I(className="fas fa-home me-2"),
-                        "Accueil"
-                    ], href="/", active="exact"),
-                    
-                    dbc.NavLink([
-                        html.I(className="fas fa-users me-2"),
-                        "Profils Donneurs"
-                    ], href="/donor-profiles", active="exact"),
-                    
-                    dbc.NavLink([
-                        html.I(className="fas fa-chart-line me-2"),
-                        "Analyse Campagnes"
-                    ], href="/campaign-analysis", active="exact"),
-                    
-                    dbc.NavLink([
-                        html.I(className="fas fa-heartbeat me-2"),
-                        "Analyse Santé"
-                    ], href="/health-analysis", active="exact"),
-                    
-                    dbc.NavLink([
-                        html.I(className="fas fa-sync me-2"),
-                        "Rétention Donneurs"
-                    ], href="/retention", active="exact"),
-                    
-                    dbc.NavLink([
-                        html.I(className="fas fa-check-circle me-2"),
-                        "Prédiction Éligibilité"
-                    ], href="/prediction", active="exact"),
-                    
-                    dbc.NavLink([
-                        html.I(className="fas fa-comment me-2"),
-                        "Feedback"
-                    ], href="/feedback", active="exact")
-                ], vertical=True, pills=True)
-            ], className="nav-menu")
-        ], className="sidebar-content")
+            # Body - Menu de navigation
+            html.Div([
+                html.Ul([
+                    html.Li(
+                        dbc.NavLink(
+                            [html.I(className="fas fa-tachometer-alt"), "Tableau de bord"],
+                            href="/",
+                            active="exact",
+                            className="nav-link"
+                        )
+                    ),
+                    html.Li(
+                        dbc.NavLink(
+                            [html.I(className="fas fa-map-marked-alt"), "Cartographie"],
+                            href="/mapping",
+                            active="exact",
+                            className="nav-link"
+                        )
+                    ),
+                    html.Li(
+                        dbc.NavLink(
+                            [html.I(className="fas fa-users"), "Profils Donneurs"],
+                            href="/donor-profiles",
+                            active="exact",
+                            className="nav-link"
+                        )
+                    ),
+                    html.Li(
+                        dbc.NavLink(
+                            [html.I(className="fas fa-chart-line"), "Analyse Campagnes"],
+                            href="/campaign-analysis",
+                            active="exact",
+                            className="nav-link"
+                        )
+                    ),
+                    html.Li(
+                        dbc.NavLink(
+                            [html.I(className="fas fa-heartbeat"), "Santé & Éligibilité"],
+                            href="/health-analysis",
+                            active="exact",
+                            className="nav-link"
+                        )
+                    ),
+                    html.Li(
+                        dbc.NavLink(
+                            [html.I(className="fas fa-check-circle"), "Prédiction Éligibilité"],
+                            href="/eligibility-prediction",
+                            active="exact",
+                            className="nav-link"
+                        )
+                    ),
+                    html.Li(
+                        dbc.NavLink(
+                            [html.I(className="fas fa-sync"), "Rétention Donneurs"],
+                            href="/donor-retention",
+                            active="exact",
+                            className="nav-link"
+                        )
+                    ),
+                    html.Li(
+                        dbc.NavLink(
+                            [html.I(className="fas fa-comments"), "Analyse Feedback"],
+                            href="/feedback-analysis",
+                            active="exact",
+                            className="nav-link"
+                        )
+                    )
+                ], className="nav-menu")
+            ], className="sidebar-body"),
+            
+            # Footer
+            html.Div([
+                html.P("Équipe HOPE", className="mb-1"),
+                html.P("2025")
+            ], className="sidebar-footer")
+        ], className="sidebar")

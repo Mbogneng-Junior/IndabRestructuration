@@ -76,10 +76,10 @@ body {
     left: 0;
     bottom: 0;
     width: 16rem;
-    background: linear-gradient(180deg, #1a0000 0%, #4d0000 100%);
+    background: linear-gradient(180deg, #4d0000 0%, #1a0000 100%);
     box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.2);
     z-index: 1000;
-    overflow-y: auto;
+    
     display: flex;
     flex-direction: column;
 }
@@ -91,9 +91,9 @@ body {
 }
 
 .sidebar-logo {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 1rem;
+    width: 120px;
+    height: 120px;
+
 }
 
 .sidebar-title {
@@ -106,6 +106,7 @@ body {
 .sidebar-body {
     flex: 1;
     padding: 1.5rem 1rem;
+    overflow: auto;
 }
 
 .sidebar-footer {

@@ -10,6 +10,7 @@ from src.pages.health_analysis.HealthAnalysisPage import HealthAnalysisPage
 from src.pages.donor_retention.DonorRetentionPage import DonorRetentionPage
 from src.pages.feedback.FeedbackPage import FeedbackPage
 from src.pages.prediction.PredictionPage import PredictionPage
+from src.pages.mapping.MappingPage import MappingPage
 
 # Variables CSS personnalisées
 CUSTOM_STYLE = {
@@ -36,6 +37,7 @@ health_analysis_page = HealthAnalysisPage()
 donor_retention_page = DonorRetentionPage()
 feedback_page = FeedbackPage()
 prediction_page = PredictionPage()
+mapping_page = MappingPage()
 
 # Initialisation des callbacks
 home_page.init_callbacks(app)
@@ -45,6 +47,7 @@ campaign_analysis_page.init_callbacks(app)
 donor_retention_page.init_callbacks(app)
 feedback_page.init_callbacks(app)
 prediction_page.init_callbacks(app)
+mapping_page.init_callbacks(app)
 
 # Layout principal de l'application
 app.layout = html.Div([
@@ -214,18 +217,22 @@ app.index_string = '''
     [Input('url', 'pathname')]
 )
 def display_page(pathname):
-    if pathname == '/donor-profiles':
+    if pathname == '/':
+        return home_page.render()
+    elif pathname == '/donor-profiles':
         return donor_profiles_page.render()
     elif pathname == '/campaign-analysis':
         return campaign_analysis_page.render()
     elif pathname == '/health-analysis':
         return health_analysis_page.render()
-    elif pathname == '/retention':
+    elif pathname == '/donor-retention':
         return donor_retention_page.render()
-    elif pathname == '/feedback':
+    elif pathname == '/feedback-analysis':
         return feedback_page.render()
-    elif pathname == '/prediction':
+    elif pathname == '/eligibility-prediction':
         return prediction_page.render()
+    elif pathname == '/mapping':
+        return mapping_page.render()
     else:
         return home_page.render()
 
