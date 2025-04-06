@@ -48,7 +48,7 @@ class Sidebar:
                     ),
                     html.Li(
                         dbc.NavLink(
-                            [html.I(className="fas fa-chart-line"), "Analyse Campagnes"],
+                            [html.I(className="fas fa-chart-line"), "Analyse Efficacité"],
                             href="/campaign-analysis",
                             active="exact",
                             className="nav-link"

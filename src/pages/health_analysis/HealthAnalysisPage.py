@@ -28,7 +28,7 @@ class HealthAnalysisPage:
              Output('temporary-unavailability-chart', 'figure'),
              Output('geographic-health-analysis', 'figure'),
              Output('health-issues-chart', 'figure'),
-             Output('health-interpretation-table', 'children')],
+             ],
             [Input('health-location-filter', 'value'),
              Input('health-date-range', 'start_date'),
              Input('health-date-range', 'end_date')]
@@ -62,7 +62,7 @@ class HealthAnalysisPage:
                 pct_temp = (temp_unavailable / total) * 100 if total > 0 else 0
                 pct_non = (non_eligible / total) * 100 if total > 0 else 0
                 
-                detailed_stats = html.Div([
+                """detailed_stats = html.Div([
                     dbc.Row([
                         dbc.Col([
                             html.H4("Donneurs éligibles", className="h6"),
@@ -77,8 +77,39 @@ class HealthAnalysisPage:
                             html.P(f"{non_eligible} ({pct_non:.1f}%)", className="h3 text-warning")
                         ], width=4)
                     ])
-                ])
+                ])"""
+                detailed_stats = html.Div([
+
+
+                                        dbc.Row([
+                                    dbc.Col([
+                                        dbc.Card([
+                                            dbc.CardBody([
+                                                html.H4("Donneurs éligibles", className="h7"),
+                                                html.P(f"{eligible} ({pct_eligible:.1f}%)", className="h4 text-primary")
+                                            ])
+                                        ], className="stat-card")
+                                    ], md=4),
+                                    dbc.Col([
+                                        dbc.Card([
+                                            dbc.CardBody([
+                                                html.H4("Temporairement non disponible", className="h7"),
+                                                html.P(f"{temp_unavailable} ({pct_temp:.1f}%)", className="h4 text-danger")
+                                            ])
+                                        ], className="stat-card")
+                                    ], md=4),
+                                    dbc.Col([
+                                        dbc.Card([
+                                            dbc.CardBody([
+                                                html.H4("Non éligibles", className="h7"),
+                                                html.P(f"{non_eligible} ({pct_non:.1f}%)", className="h4 text-warning")
+                                            ])
+                                        ], className="stat-card")
+                                    ], md=4)
+                                ], className="mb-4"),
+                    ])
                 
+            
                 # 2. Top problèmes de santé
                 health_issues = []
                 for col in health_cols:
@@ -238,8 +269,7 @@ class HealthAnalysisPage:
                     top_unavail_fig,
                     temp_fig,
                     geo_fig,
-                    health_fig,
-                    interpretation_table
+                    health_fig
                 )
                 
             except Exception as e:
@@ -262,7 +292,7 @@ class HealthAnalysisPage:
                 dbc.CardBody([
                     dbc.Row([
                         dbc.Col([
-                            html.H4("Filtres d'analyse", className="card-title mb-3"),
+                            html.H4("Filtres ", className="card-title mb-3"),
                             dbc.Row([
                                 dbc.Col([
                                     html.Label("Zone géographique", className="mb-2"),
@@ -344,7 +374,7 @@ class HealthAnalysisPage:
                         ])
                     ])
                 ], width=8)
-            ], className="mb-4"),
+            ],  className="retention-container"),
             
             # Graphique des problèmes de santé en bas
             dbc.Row([
@@ -359,17 +389,7 @@ class HealthAnalysisPage:
                         ])
                     ])
                 ])
-            ], className="mb-4"),
+            ], className="chart-card mb-4"),
             
-            # Tableau d'interprétation
-            dbc.Row([
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardHeader("Interprétation des résultats"),
-                        dbc.CardBody([
-                            html.Div(id='health-interpretation-table')
-                        ])
-                    ])
-                ])
-            ])
+            
         ], fluid=True)

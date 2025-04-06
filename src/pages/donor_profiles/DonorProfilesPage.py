@@ -31,7 +31,7 @@ class DonorProfilesPage:
         @app.callback(
             [Output('cluster-scatter', 'figure'),
              Output('cluster-characteristics', 'children'),
-             Output('profile-interpretation-table', 'children')],
+             ],
             [Input('location-filter', 'value'),
              Input('eligibility-filter', 'value'),
              Input('cluster-slider', 'value')]
@@ -273,7 +273,7 @@ class DonorProfilesPage:
             # Créer le tableau d'interprétation
             interpretation_table = self._create_profile_interpretation(df, clusters)
             
-            return scatter_fig, html.Div(cluster_characteristics), interpretation_table
+            return scatter_fig, html.Div(cluster_characteristics)
             
         except Exception as e:
             print(f"Erreur dans update_clustering: {str(e)}")
@@ -541,15 +541,5 @@ class DonorProfilesPage:
                 ], md=6)
             ], className="mb-4"),
             
-            # Tableau d'interprétation des profils
-            dbc.Row([
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardHeader("Interprétation des Profils"),
-                        dbc.CardBody([
-                            html.Div(id='profile-interpretation-table')
-                        ])
-                    ])
-                ])
-            ])
+           
         ], fluid=True)
