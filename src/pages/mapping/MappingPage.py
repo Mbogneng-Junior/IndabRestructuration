@@ -68,11 +68,12 @@ class MappingPage:
              Output("city-chart", "figure")],
             [Input("city-select", "value"),
              Input("arrondissement-select", "value"),
-             Input("quartier-select", "value"),
+             
              Input("date-range", "start_date"),
              Input("date-range", "end_date")]
         )
-        def update_visualizations(city, arrondissement, quartier, start_date, end_date):
+        #Input("quartier-select", "value"), quartier,
+        def update_visualizations(city, arrondissement,  start_date, end_date):
             # Charger les données
             df = self.data_service.get_donor_data()
             df['date_de_remplissage'] = pd.to_datetime(df['date_de_remplissage'])
@@ -102,23 +103,15 @@ class MappingPage:
             )
 
             # Filtrer les données
-            if quartier:
-                df_filtered = df[df['quartier_de_residence'] == quartier]
-            elif arrondissement:
+            
+            if arrondissement:
                 df_filtered = df[df['arrondissement_de_residence'] == arrondissement]
             elif city:
                 df_filtered = df[df['arrondissement_de_residence'].str.contains(city, case=False, na=False)]
             else:
                 df_filtered = df
 
-            # Ajouter la couche de chaleur
-            heat_data = [[row['latitude'], row['longitude']] for index, row in df_filtered.iterrows()]
-            plugins.HeatMap(
-                heat_data,
-                radius=15,
-                blur=10,
-                gradient={0.4: '#1a1f3c', 0.65: '#c62828', 1: '#ff5f52'}
-            ).add_to(m)
+          
 
             # Créer les clusters de points
             marker_cluster = plugins.MarkerCluster(
@@ -150,7 +143,6 @@ class MappingPage:
                 district_df,
                 x='arrondissement',
                 y='nombre',
-                title='Répartition des donneurs par arrondissement',
                 color='nombre',
                 color_continuous_scale=['#1a1f3c', '#c62828']
             )
@@ -168,7 +160,6 @@ class MappingPage:
                 quartier_df,
                 x='quartier',
                 y='nombre',
-                title='Répartition des donneurs par quartier',
                 color='nombre',
                 color_continuous_scale=['#1a1f3c', '#c62828']
             )
@@ -190,7 +181,6 @@ class MappingPage:
                 city_df,
                 x='ville',
                 y='nombre',
-                title='Répartition des donneurs par ville',
                 color='nombre',
                 color_continuous_scale=['#1a1f3c', '#c62828']
             )
@@ -203,6 +193,8 @@ class MappingPage:
             )
 
             return m._repr_html_(), district_fig, quartier_fig, city_fig
+
+   
 
     def render(self):
         return dbc.Container([
@@ -233,42 +225,66 @@ class MappingPage:
                                     )
                                 ], md=4),
                                 dbc.Col([
-                                    html.Label("Quartier"),
-                                    dcc.Dropdown(
-                                        id="quartier-select",
-                                        placeholder="Sélectionnez un quartier"
-                                    )
-                                ], md=4)
-                            ], className="mb-3"),
-                            dbc.Row([
-                                dbc.Col([
                                     html.Label("Période"),
                                     dcc.DatePickerRange(
                                         id="date-range",
                                         display_format="DD/MM/YYYY"
                                     )
-                                ], md=12)
-                            ])
+                                ], md=4),
+                                
+                            ], className="mb-3"),
                         ])
                     ], className="mb-4")
                 ])
             ]),
+
+
+
+            
             dbc.Row([
                 dbc.Col([
                     html.Iframe(id="map-container", width="100%", height="600px")
                 ], md=12, className="mb-4")
             ]),
+
+
+        
+           
             dbc.Row([
                 dbc.Col([
-                    dcc.Graph(id="district-chart")
-                ], md=6),
+                    dbc.Card([
+                        dbc.CardHeader("Répartition des donneurs par ville"),
+                        dbc.CardBody([
+                            dcc.Graph(
+                                id='city-chart',
+                                config={'displayModeBar': False}
+                            )
+                        ])
+                    ], className="chart-card mb-4")
+                ], md=12),
                 dbc.Col([
-                    dcc.Graph(id="quartier-chart")
-                ], md=6)
-            ], className="mb-4"),
-            dbc.Row([
+                    dbc.Card([
+                        dbc.CardHeader("Répartition des donneurs par arrondissement"),
+                        dbc.CardBody([
+                            dcc.Graph(
+                                id='district-chart',
+                                config={'displayModeBar': False}
+                            )
+                        ])
+                    ], className="chart-card mb-4")
+                ], md=12),
+                
                 dbc.Col([
-                    dcc.Graph(id="city-chart")
-                ], md=12, className="mb-4")
-            ])
+                    dbc.Card([
+                        dbc.CardHeader("Répartition des donneurs par quartier"),
+                        dbc.CardBody([
+                            dcc.Graph(
+                                id='quartier-chart',
+                                config={'displayModeBar': False}
+                            )
+                        ])
+                    ], className="chart-card")
+                ], md=12)
+            ]),
+            
         ], fluid=True)

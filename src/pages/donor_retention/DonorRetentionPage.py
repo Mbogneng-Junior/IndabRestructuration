@@ -51,7 +51,7 @@ class DonorRetentionPage:
                 returning_donors = (df['a_t_il_elle_deja_donne_le_sang'] == 'oui').sum()
                 retention_rate = (returning_donors / total_donors * 100) if total_donors > 0 else 0
                 
-                stats = html.Div([
+                """stats = html.Div([
                     dbc.Row([
                         dbc.Col([
                             html.H4("Donneurs totaux", className="h6"),
@@ -66,8 +66,36 @@ class DonorRetentionPage:
                             html.P(f"{retention_rate:.1f}%", className="h3 text-info")
                         ], width=4)
                     ])
+                ])"""
+                stats =html.Div([
+                        dbc.Row([
+                            dbc.Col([
+                                dbc.Card([
+                                    dbc.CardBody([
+                                        html.H4("Donneurs totaux", className="h6"),
+                                        html.P(f"{total_donors:,}", className="h3 text-primary")
+                                    ])
+                                ], className="stat-card")
+                            ], md=4),
+                            dbc.Col([
+                                dbc.Card([
+                                    dbc.CardBody([
+                                        html.H4("Donneurs réguliers", className="h6"),
+                                        html.P(f"{returning_donors:,}", className="h3 text-success")
+                                    ])
+                                ], className="stat-card")
+                            ], md=4),
+                            dbc.Col([
+                                dbc.Card([
+                                    dbc.CardBody([
+                                        html.H4("Taux de rétention", className="h6"),
+                                        html.P(f"{retention_rate:.1f}%", className="h3 text-info")
+                                    ])
+                                ], className="stat-card")
+                            ], md=4)
+                        ], className="mb-4"),
+            
                 ])
-                
                 # 2. Tendance de rétention
                 monthly_stats = df.groupby(pd.Grouper(key='date_de_remplissage', freq='M')).agg({
                     'a_t_il_elle_deja_donne_le_sang': lambda x: (x == 'oui').mean() * 100
@@ -248,13 +276,12 @@ class DonorRetentionPage:
             ], className="mb-4"),
             
             # Statistiques de rétention
-            dbc.Card([
-                dbc.CardHeader("Statistiques de rétention"),
+            dbc.Row([
                 dbc.CardBody([
                     html.Div(id='retention-stats'),
                     dbc.Spinner(color="primary", type="grow", size="sm")
                 ])
-            ], className="mb-4"),
+            ]),
             
             # Graphiques d'analyse
             dbc.Row([

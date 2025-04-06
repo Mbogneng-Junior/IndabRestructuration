@@ -78,7 +78,9 @@ class CampaignAnalysisPage:
                     timeline_df,
                     x='date_de_remplissage',
                     y='Nombre de dons',
-                    title="Nombre de dons en fonction de la date de remplissage"
+                    title="Nombre de dons en fonction de la date de remplissage",
+                
+
                 )
                 
                 # Améliorer l'échelle et le style
@@ -92,7 +94,8 @@ class CampaignAnalysisPage:
                     ),
                     margin=dict(l=50, r=20, t=40, b=30)
                 )
-                
+                # Changer la couleur de la ligne en rouge
+                timeline_fig.update_traces(line=dict(color='#c62828'))
                 # 2. Distribution de l'éligibilité par âge
                 eligible_df = df[df['eligibilite_au_don'] == 'eligible'].copy()
                 
@@ -113,7 +116,8 @@ class CampaignAnalysisPage:
                     x='age_group',
                     y='Nombre de donneurs éligibles',
                     title="Distribution des donneurs éligibles par âge",
-                    labels={'age_group': 'Groupe d\'âge'}
+                    labels={'age_group': 'Groupe d\'âge'},
+                    color_continuous_scale=['#1a1f3c', '#c62828']
                 )
                 
                 age_dist_fig.update_layout(

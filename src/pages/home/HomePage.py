@@ -397,19 +397,138 @@ class HomePage:
                             ])
                         ], className="chart-container")
                     ], width=12, lg=6),
-                ])
+                ]),
+                
+                dbc.Row([
+                    dbc.Col([
+                        html.H2("Résumé des analyses clés", className="mb-4 mt-5"),
+                        html.Hr(),
+                    ], md=12)
+                ]),
+                # Graphiques de santé et campagne
+                dbc.Row([
+                    dbc.Col([
+                        dcc.Graph(id="summary-health-issues", figure=self.create_health_summary()),
+                    ], md=6),
+                    dbc.Col([
+                        dcc.Graph(id="summary-campaign-timeline", figure=self.create_campaign_summary()),
+                    ], md=6),
+                ], className="mb-4"),
+                # Graphiques de rétention et profils
+                dbc.Row([
+                    dbc.Col([
+                        dcc.Graph(id="summary-retention-trend", figure=self.create_retention_summary()),
+                    ], md=6),
+                    dbc.Col([
+                        dcc.Graph(id="summary-donor-profiles", figure=self.create_profiles_summary()),
+                    ], md=6),
+                ], className="mb-4")
             ], fluid=True)
-        ])
+    ])
+    def create_health_summary(self):
+        """Crée le résumé des problèmes de santé"""
+        df = self.data_service.get_donor_data()
+        
+        # Calculer les statistiques de santé
+        health_cols = [col for col in df.columns if 'raison_de_non-eligibilité_totale__' in col]
+        health_stats = pd.DataFrame({
+            'Raison': [col.split('[')[1].split(']')[0] for col in health_cols],
+            'Nombre': [df[col].eq('oui').sum() for col in health_cols]
+        }).sort_values('Nombre', ascending=True)
+        
+        fig = px.bar(
+            health_stats.tail(5),  # Top 5 des problèmes de santé
+            x='Nombre',
+            y='Raison',
+            orientation='h',
+            title="Principaux problèmes de santé",
+            color='Nombre',
+            color_continuous_scale=['#1a1f3c', '#c62828']
+        )
+        fig.update_layout(
+            height=300,
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            font={'color': '#1a1f3c'},
+            showlegend=False,
+            margin=dict(l=10, r=10, t=40, b=10)
+        )
+        return fig
 
+    def create_campaign_summary(self):
+        """Crée le résumé de la campagne"""
+        df = self.data_service.get_donor_data()
+        df['date_de_remplissage'] = pd.to_datetime(df['date_de_remplissage'])
+        
+        # Créer le graphique temporel
+        timeline_df = df.groupby('date_de_remplissage').size().reset_index(name='Nombre de dons')
+        fig = px.line(
+            timeline_df,
+            x='date_de_remplissage',
+            y='Nombre de dons',
+            title="Évolution des dons dans le temps",
+        )
+        fig.update_traces(line=dict(color='#c62828'))
+        fig.update_layout(
+            height=300,
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            font={'color': '#1a1f3c'},
+            showlegend=False,
+            margin=dict(l=10, r=10, t=40, b=10)
+        )
+        return fig
 
+    def create_retention_summary(self):
+        """Crée le résumé de la rétention des donneurs"""
+        df = self.data_service.get_donor_data()
+        df['date_de_remplissage'] = pd.to_datetime(df['date_de_remplissage'])
+        
+        # Calculer la rétention mensuelle
+        monthly_stats = df.groupby(pd.Grouper(key='date_de_remplissage', freq='M')).agg({
+            'a_t_il_elle_deja_donne_le_sang': lambda x: (x == 'oui').mean() * 100
+        }).reset_index()
+        
+        fig = px.line(
+            monthly_stats,
+            x='date_de_remplissage',
+            y='a_t_il_elle_deja_donne_le_sang',
+            title="Taux de rétention des donneurs",
+        )
+        fig.update_traces(line=dict(color='#c62828'))
+        fig.update_layout(
+            height=300,
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            font={'color': '#1a1f3c'},
+            showlegend=False,
+            yaxis_title="Taux de rétention (%)",
+            margin=dict(l=10, r=10, t=40, b=10)
+        )
+        return fig
 
-"""Je veux que tu mettes un menu Cartographie de la Répartition sur le sidebar Indaba_CompétitionStructure/src/components/layout/Sidebar.py et dans ce menu tu dois : 
-	--> Mettre la carte qui est deja la. dans la page Indaba_CompétitionStructure/src/pages/home/HomePage.py puis le filtre doit etre comme ceci
-	
-		.. La ville : on selectionne une ville(Douala, Yaoundé, Bafoussam) ça zoom directement sur la carte et sa fait un affichage par arrondissement de cette ville
-		.. L'arrondissement : on selection un arrodissement sa zoom directement sur la carte et sa fait un affichage par quartier de cette arrondissement
-		( Remarque : on charge les arrondissements de la villes a la selection de la dite ville )
-		.. Filtre sur la periode.
-	--> Diagramme en barre de la repartition des donneurs par arrondissement
-	--> Diagramme en barre de la repartition des donneurs par quartier
-	--> Diagramme en barre de la repartition des donneurs par ville"""
+    def create_profiles_summary(self):
+        """Crée le résumé des profils des donneurs"""
+        df = self.data_service.get_donor_data()
+        
+        # Distribution par âge et éligibilité
+        age_eligible = df.groupby(['age', 'eligibilite_au_don']).size().reset_index(name='count')
+        
+        fig = px.histogram(
+            age_eligible,
+            x='age',
+            y='count',
+            color='eligibilite_au_don',
+            title="Distribution des âges par éligibilité",
+            color_discrete_map={'eligible': '#c62828', 'non eligible': '#1a1f3c'}
+        )
+        fig.update_layout(
+            height=300,
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            font={'color': '#1a1f3c'},
+            margin=dict(l=10, r=10, t=40, b=10),
+            bargap=0.1
+        )
+        return fig
+        

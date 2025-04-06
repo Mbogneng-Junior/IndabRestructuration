@@ -53,7 +53,7 @@ class FeedbackPage:
                     values='Nombre',
                     names='Type',
                     title="Répartition des retours",
-                    color_discrete_sequence=['#28a745', '#dc3545']
+                    color_discrete_sequence=['#1a1f3c', '#c62828']
                 )
                 pie_fig.update_layout(showlegend=True)
                 
