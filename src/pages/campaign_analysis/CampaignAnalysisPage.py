@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from ...services.data.DataService import DataService
+import os
 
 class CampaignAnalysisPage:
     def __init__(self):
@@ -72,6 +73,7 @@ class CampaignAnalysisPage:
             [Output('total-donations', 'children'),
              Output('eligibility-rate', 'children'),
              Output('total-neighborhoods', 'children'),
+             Output('peak-year', 'children'),
              Output('donations-timeline', 'figure'),
              Output('eligibility-age-distribution', 'figure')],
             [Input('city-filter', 'value'),
@@ -84,7 +86,13 @@ class CampaignAnalysisPage:
             try:
                 df = self.data_service.get_donor_data()
                 
-                # Vérifier et convertir la colonne de date
+                # Charger le dataset des dons effectifs
+                current_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+                donations_file = os.path.join(current_dir, 'data', 'data_cleaned.csv')
+                donations_df = pd.read_csv(donations_file)
+                donations_df['date'] = pd.to_datetime(donations_df['date'])
+                
+                # Traitement du premier dataset (données de base)
                 date_column = 'date_de_remplissage'
                 if date_column not in df.columns:
                     print(f"Colonne {date_column} non trouvée. Colonnes disponibles:", df.columns)
@@ -106,8 +114,10 @@ class CampaignAnalysisPage:
                 
                 if start_date:
                     df = df[df[date_column].dt.date >= pd.to_datetime(start_date).date()]
+                    donations_df = donations_df[donations_df['date'].dt.date >= pd.to_datetime(start_date).date()]
                 if end_date:
                     df = df[df[date_column].dt.date <= pd.to_datetime(end_date).date()]
+                    donations_df = donations_df[donations_df['date'].dt.date <= pd.to_datetime(end_date).date()]
                 
                 # Calculer les statistiques
                 total_donations = len(df)
@@ -119,22 +129,48 @@ class CampaignAnalysisPage:
                 
                 total_neighborhoods = df[neighborhood_column].nunique() if neighborhood_column in df.columns else 0
                 
-                # Créer les graphiques
-                timeline_df = df.groupby(date_column).size().reset_index(name='Nombre de dons')
-                timeline_fig = px.line(
-                    timeline_df,
-                    x=date_column,
-                    y='Nombre de dons',
-                    title="Évolution des dons dans le temps"
-                )
-                timeline_fig.update_layout(
+                # Trouver l'année avec le plus de dons
+                yearly_donations = df.groupby(df[date_column].dt.year).size()
+                peak_year = yearly_donations.idxmax() if not yearly_donations.empty else "N/A"
+                peak_year_count = yearly_donations.max() if not yearly_donations.empty else 0
+                
+                # Créer le graphique avec les deux courbes
+                timeline_df = df.groupby(date_column).size().reset_index(name='Inscriptions')
+                donations_timeline = donations_df.groupby('date').size().reset_index(name='Dons effectifs')
+                
+                fig = go.Figure()
+                
+                # Ajouter la courbe des inscriptions
+                fig.add_trace(go.Scatter(
+                    x=timeline_df[date_column],
+                    y=timeline_df['Inscriptions'],
+                    name='Inscriptions',
+                    line=dict(color='#1f77b4', width=2)
+                ))
+                
+                # Ajouter la courbe des dons effectifs
+                fig.add_trace(go.Scatter(
+                    x=donations_timeline['date'],
+                    y=donations_timeline['Dons effectifs'],
+                    name='Dons effectifs',
+                    line=dict(color='#2ca02c', width=2)
+                ))
+                
+                # Mise à jour du layout
+                fig.update_layout(
+                    title="Évolution des inscriptions et des dons dans le temps",
                     xaxis_title="Date",
-                    yaxis_title="Nombre de dons",
+                    yaxis_title="Nombre",
                     template='plotly_white',
-                    yaxis=dict(rangemode='tozero', tickformat=',d'),
-                    margin=dict(l=50, r=20, t=40, b=30)
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=1.02,
+                        xanchor="right",
+                        x=1
+                    ),
+                    margin=dict(l=50, r=20, t=60, b=30)
                 )
-                timeline_fig.update_traces(line=dict(color='#c62828'))
                 
                 # Distribution par âge
                 age_dist_fig = go.Figure()
@@ -170,7 +206,8 @@ class CampaignAnalysisPage:
                     f"{total_donations:,}",
                     f"{eligibility_rate:.1%}",
                     f"{total_neighborhoods:,}",
-                    timeline_fig,
+                    f"Pic en {peak_year} ({peak_year_count:,} dons)",
+                    fig,
                     age_dist_fig
                 )
                 
@@ -185,7 +222,7 @@ class CampaignAnalysisPage:
                     y=0.5,
                     showarrow=False
                 )
-                return "0", "0%", "0", empty_fig, empty_fig
+                return "0", "0%", "0", "N/A", empty_fig, empty_fig
 
         @app.callback(
             [Output('campaign-total-donations', 'children'),
@@ -295,11 +332,11 @@ class CampaignAnalysisPage:
                         dbc.Col([
                             dbc.Card([
                                 dbc.CardBody([
-                                    html.H5("Total des dons", className="card-title"),
+                                    html.H5("Total des inscriptions", className="card-title"),
                                     html.H3(id="total-donations", className="text-primary")
                                 ])
                             ])
-                        ]),
+                        ], width=3),
                         dbc.Col([
                             dbc.Card([
                                 dbc.CardBody([
@@ -307,7 +344,7 @@ class CampaignAnalysisPage:
                                     html.H3(id="eligibility-rate", className="text-success")
                                 ])
                             ])
-                        ]),
+                        ], width=3),
                         dbc.Col([
                             dbc.Card([
                                 dbc.CardBody([
@@ -315,7 +352,15 @@ class CampaignAnalysisPage:
                                     html.H3(id="total-neighborhoods", className="text-info")
                                 ])
                             ])
-                        ])
+                        ], width=3),
+                        dbc.Col([
+                            dbc.Card([
+                                dbc.CardBody([
+                                    html.H5("Année pic", className="card-title"),
+                                    html.H3(id="peak-year", className="text-warning")
+                                ])
+                            ])
+                        ], width=3)
                     ], className="mb-4"),
                     dbc.Row([
                         dbc.Col([
