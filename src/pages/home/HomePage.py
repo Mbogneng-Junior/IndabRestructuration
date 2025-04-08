@@ -10,8 +10,10 @@ from branca.colormap import LinearColormap
 from ...services.data.DataService import DataService
 
 class HomePage:
+    groupbyValeur=""
     def __init__(self):
         self.data_service = DataService()
+        
 
     def init_callbacks(self, app):
         from dash.dependencies import Input, Output, State
@@ -30,8 +32,7 @@ class HomePage:
             return pd.Series({'latitude': base_lat, 'longitude': base_lon})
         
         @app.callback(
-            [Output("stats-arrondissements", "children"),
-             Output("stats-quartiers", "children"),
+            [
              Output("stats-donors", "children"),
              Output("stats-successful", "children"),
              Output("stats-ineligible", "children"),
@@ -56,9 +57,7 @@ class HomePage:
                 df = df[(df['date_de_remplissage'].dt.date >= pd.to_datetime(start_date).date()) &
                        (df['date_de_remplissage'].dt.date <= pd.to_datetime(end_date).date())]
             
-            # Calculer les statistiques
-            total_arrondissements = df['arrondissement_de_residence'].nunique()
-            total_quartiers = df['quartier_de_residence'].nunique()
+            
             total_donors = len(df)
             successful_donations = len(df[df['eligibilite_au_don'] == 'eligible'])
             ineligible_donations = len(df[df['eligibilite_au_don'] != 'eligible'])
@@ -68,8 +67,7 @@ class HomePage:
             max_date = df['date_de_remplissage'].max()
             
             return (
-                str(total_arrondissements),
-                str(total_quartiers),
+                
                 f"{total_donors:,}",
                 f"{successful_donations:,}",
                 f"{ineligible_donations:,}",
@@ -80,7 +78,8 @@ class HomePage:
             )
         
         @app.callback(
-            [Output("donor-map", "srcDoc"),
+            [
+             Output("donor-map", "srcDoc"),
              Output("donor-stats-graph", "figure"),
              Output("donor-geo-distribution", "figure")],
             [Input("location-filter", "value"),
@@ -105,6 +104,7 @@ class HomePage:
                     (df['date_de_remplissage'].dt.date >= pd.to_datetime(start_date).date()) &
                     (df['date_de_remplissage'].dt.date <= pd.to_datetime(end_date).date())
                 ]
+            
             
             # Créer la carte avec folium
             def create_map(df, zone_type):
@@ -164,8 +164,8 @@ class HomePage:
                 fig = px.pie(
                     values=eligibility_counts.values,
                     names=eligibility_counts.index,
-                    title="Répartition des donneurs par éligibilité",
-                    color_discrete_sequence=['#4CAF50', '#FF9800', '#f44336']
+                    
+                    color_discrete_sequence=['#1a1f3c', '#c62828', '#4d0000']
                 )
                 fig.update_layout(
                     plot_bgcolor='white',
@@ -189,7 +189,7 @@ class HomePage:
                     x='count',
                     y=group_by,
                     orientation='h',
-                    title=f"Répartition des donneurs par {group_by.replace('_', ' ').title()}",
+                    
                     color='count',
                     color_continuous_scale=['#1a1f3c', '#c62828']
                 )
@@ -202,7 +202,7 @@ class HomePage:
                     xaxis_title="Nombre de donneurs",
                     yaxis_title=group_by.replace('_', ' ').title()
                 )
-                
+                self.groupbyValeur=group_by
                 return fig
             
             # Retourner les visualisations
@@ -239,34 +239,7 @@ class HomePage:
             # Section des statistiques principales
             dbc.Container([
                 dbc.Row([
-                    dbc.Col([
-                        dbc.Card([
-                            html.Div([
-                                html.Span(className="stat-icon-bg"),
-                                html.I(className="fas fa-building stat-icon")
-                            ], className="stat-icon-wrapper"),
-                            html.H3(id="stats-arrondissements",
-                                   children=f"{total_arrondissements}", 
-                                   className="stat-value"),
-                            html.P("Arrondissements", className="stat-label"),
-                            html.Small("Zones couvertes", className="stat-detail")
-                        ], className="stat-card")
-                    ], xs=12, sm=6, md=4, lg=3, className="mb-3"),
-                    
-                    dbc.Col([
-                        dbc.Card([
-                            html.Div([
-                                html.Span(className="stat-icon-bg"),
-                                html.I(className="fas fa-home stat-icon")
-                            ], className="stat-icon-wrapper"),
-                            html.H3(id="stats-quartiers",
-                                   children=f"{total_quartiers}", 
-                                   className="stat-value"),
-                            html.P("Quartiers", className="stat-label"),
-                            html.Small("Zones de collecte", className="stat-detail")
-                        ], className="stat-card")
-                    ], xs=12, sm=6, md=4, lg=3, className="mb-3"),
-                    
+                
                     dbc.Col([
                         dbc.Card([
                             html.Div([
@@ -373,22 +346,33 @@ class HomePage:
                         ], className="map-card")
                     ], width=12, lg=9),
                 ], className="mb-4"),
-                
-                # Graphiques
+
                 dbc.Row([
                     dbc.Col([
+                        html.H2("Résumé des analyses clés", className="mb-4 mt-5 text-black"),
+                        html.Hr(),
+                    ], md=12)
+                ]),
+
+
+                # Graphiques
+                dbc.Row([
+                    
                         dbc.Card([
+                            dbc.CardHeader("Répartition des donneurs par éligibilité"),
                             dbc.CardBody([
                                 dcc.Graph(
                                     id='donor-stats-graph',
                                     config={'displayModeBar': False}
                                 )
                             ])
-                        ], className="chart-container")
-                    ], width=12, lg=6),
+                        ], className="chart-container"),
                     
-                    dbc.Col([
+                    
+                   
+                        
                         dbc.Card([
+                            dbc.CardHeader(f"Répartition des donneurs par {self.groupbyValeur.replace('_', ' ').title()}"),
                             dbc.CardBody([
                                 dcc.Graph(
                                     id='donor-geo-distribution',
@@ -396,34 +380,61 @@ class HomePage:
                                 )
                             ])
                         ], className="chart-container")
-                    ], width=12, lg=6),
+                    
                 ]),
                 
-                dbc.Row([
-                    dbc.Col([
-                        html.H2("Résumé des analyses clés", className="mb-4 mt-5"),
-                        html.Hr(),
-                    ], md=12)
-                ]),
+                
                 # Graphiques de santé et campagne
                 dbc.Row([
-                    dbc.Col([
-                        dcc.Graph(id="summary-health-issues", figure=self.create_health_summary()),
-                    ], md=6),
-                    dbc.Col([
-                        dcc.Graph(id="summary-campaign-timeline", figure=self.create_campaign_summary()),
-                    ], md=6),
+
+
+                    dbc.Card([
+                        dbc.CardHeader("Principaux problèmes de santé"),
+                        dbc.CardBody([
+                            dcc.Graph(
+                                id="summary-health-issues",
+                                config={'displayModeBar': False},
+                                figure=self.create_health_summary()
+                            )
+                        ])
+                    ]),
+                    dbc.Card([
+                        dbc.CardHeader("Évolution des dons dans le temps"),
+                        dbc.CardBody([
+                            dcc.Graph(
+                                id="summary-campaign-timeline",
+                                config={'displayModeBar': False},
+                                figure=self.create_campaign_summary()
+                            )
+                        ])
+                    ]),
+                    
                 ], className="mb-4"),
                 # Graphiques de rétention et profils
                 dbc.Row([
-                    dbc.Col([
-                        dcc.Graph(id="summary-retention-trend", figure=self.create_retention_summary()),
-                    ], md=6),
-                    dbc.Col([
-                        dcc.Graph(id="summary-donor-profiles", figure=self.create_profiles_summary()),
-                    ], md=6),
+                    dbc.Card([
+                        dbc.CardHeader("Taux de rétention des donneurs"),
+                        dbc.CardBody([
+                            dcc.Graph(
+                                id="summary-retention-trend",
+                                config={'displayModeBar': False},
+                                figure=self.create_retention_summary()
+                            )
+                        ])
+                    ], className="mb-4"),
+                    dbc.Card([
+                        dbc.CardHeader("Distribution des âges par éligibilité"),
+                        dbc.CardBody([
+                            dcc.Graph(
+                                id="summary-donor-profiles",
+                                config={'displayModeBar': False},
+                                figure=self.create_profiles_summary()
+                            )
+                        ])
+                    ], className="mb-4"),
+                    
                 ], className="mb-4")
-            ], fluid=True)
+            ], fluid=True, className="retention-container")
     ])
     def create_health_summary(self):
         """Crée le résumé des problèmes de santé"""
@@ -441,7 +452,6 @@ class HomePage:
             x='Nombre',
             y='Raison',
             orientation='h',
-            title="Principaux problèmes de santé",
             color='Nombre',
             color_continuous_scale=['#1a1f3c', '#c62828']
         )
@@ -466,7 +476,7 @@ class HomePage:
             timeline_df,
             x='date_de_remplissage',
             y='Nombre de dons',
-            title="Évolution des dons dans le temps",
+    
         )
         fig.update_traces(line=dict(color='#c62828'))
         fig.update_layout(
@@ -493,7 +503,7 @@ class HomePage:
             monthly_stats,
             x='date_de_remplissage',
             y='a_t_il_elle_deja_donne_le_sang',
-            title="Taux de rétention des donneurs",
+            
         )
         fig.update_traces(line=dict(color='#c62828'))
         fig.update_layout(
@@ -519,8 +529,7 @@ class HomePage:
             x='age',
             y='count',
             color='eligibilite_au_don',
-            title="Distribution des âges par éligibilité",
-            color_discrete_map={'eligible': '#c62828', 'non eligible': '#1a1f3c'}
+            color_discrete_map={'eligible': '#c62828', 'temporairement non-eligible': '#1a1f3c','définitivement non-eligible':'#4d0000'}
         )
         fig.update_layout(
             height=300,
@@ -531,4 +540,7 @@ class HomePage:
             bargap=0.1
         )
         return fig
-        
+
+
+
+"""Dans la page /campaign-analysis , on a plusieurs choses à faire. En haut au niveau des cartes tu ajoutes une nouvelle carte pour le mois de l'année ou le don est plus élévé.  Puis  au niveau  du graphe "Évolution des dons", tu superposes une autre courbe pour l'evolution du nombre de donation aucours du temps et pour celà tu utiliseras plutot ce dataset pour les personnes ayant donnés de le sang (Indaba_CompétitionStructure/data/data_cleaned.csv). Je veux bien que tu utilises bien ce dataset pour bien le comprendre avant de commencer. Puis tu fais un autre diagramme de densité pour les donnéurs (Dataset Indaba_CompétitionStructure/data/data_cleaned.csv) et les participants (dataset Indaba_CompétitionStructure/data/processed_data.csv). Puis enfin tu fais deux diagrammes circulaires sur la meme ligne, pour les donneurs et participants de chaque sexe. Evites au mieux les erreurs de Callbacks. Fait une analyse approfondi de mon projet pour te rassurer que les callbacks utilisés sont uniques."""

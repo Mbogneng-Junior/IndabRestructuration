@@ -29,7 +29,9 @@ class DonorProfilesPage:
             df = self.data_service.get_donor_data()
             locations = df['arrondissement_de_residence'].unique()
             return [{'label': loc, 'value': loc} for loc in sorted(locations)]
+        
 
+        
         @app.callback(
             [Output('cluster-scatter', 'figure'),
              Output('cluster-characteristics', 'children'),
@@ -45,6 +47,7 @@ class DonorProfilesPage:
                     df = df[df['arrondissement_de_residence'] == location]
                 if eligibility:
                     df = df[df['eligibilite_au_don'] == eligibility]
+                
 
                 binary_columns = [col for col in df.columns if col.startswith('raison_')]
                 nominal_columns = ['niveau_d_etude', 'genre', 'situation_matrimoniale_(sm)', 'religion', 'profession', 'quartier_de_residence', 'arrondissement_de_residence']
@@ -482,6 +485,36 @@ class DonorProfilesPage:
                                         className="mt-2"
                                     )
                                 ], md=4)
+                            ]),
+                            dbc.Row([
+                                dbc.Col([
+                                    html.Label("Ville"),
+                                    dcc.Dropdown(
+                                        id='ville-filter',
+                                        placeholder="Sélectionner une ville",
+                                        className="mb-2",
+                                        style={'zIndex': 9999}
+                                    )
+                                ], md=4),
+                                dbc.Col([
+                                    html.Label("Arrondissement"),
+                                    dcc.Dropdown(
+                                        id='arrondissement-filter',
+                                        options=[
+                                            {'label': 'Éligible', 'value': 'eligible'},
+                                            {'label': 'Non éligible', 'value': 'ineligible'}
+                                        ],
+                                        placeholder="Sélectionner un Arrondissement",
+                                        className="mb-2"
+                                    )
+                                ], md=4),
+                                dbc.Col([
+                                    html.Label("Période"),
+                                    dcc.DatePickerRange(
+                                        id="date-range",
+                                        display_format="DD/MM/YYYY"
+                                    )
+                                ], md=4),
                             ])
                         ])
                     ], className="mb-4")

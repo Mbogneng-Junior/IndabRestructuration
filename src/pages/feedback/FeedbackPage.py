@@ -266,8 +266,8 @@ class FeedbackPage:
         return dbc.Container([
             dbc.Row([
                 dbc.Col([
-                    html.H2("Analyse des Retours", 
-                            className="text-primary mb-4"),
+                    html.H1("Analyse des Retours", 
+                            className="text-black mb-4"),
                     html.P("Analyse détaillée des retours et de la satisfaction des donneurs",
                           className="text-muted mb-4")
                 ])
@@ -432,5 +432,196 @@ class FeedbackPage:
                         ])
                     ])
                 ], md=6)
+            ])
+        ], fluid=True)
+
+class SentimentPage:
+    def __init__(self):
+        self.data_service = DataService()
+        self.generate_feedback_data()
+
+    def generate_feedback_data(self):
+        # Générer des données de feedback synthétiques
+        df = self.data_service.get_donor_data()
+        n_samples = len(df)
+        
+        # Générer des feedbacks aléatoires
+        feedbacks = []
+        sentiments = []
+        dates = []
+        
+        positive_feedbacks = [
+            "Très satisfait du processus de don, personnel accueillant",
+            "Excellente expérience, je reviendrai sûrement",
+            "Service rapide et professionnel",
+            "Équipe médicale très compétente",
+            "Atmosphère rassurante et confortable"
+        ]
+        
+        negative_feedbacks = [
+            "Temps d'attente trop long",
+            "Manque d'information sur le processus",
+            "Local peu accessible",
+            "Communication à améliorer",
+            "Procédure trop complexe"
+        ]
+        
+        neutral_feedbacks = [
+            "Processus standard",
+            "Service correct",
+            "Rien de particulier à signaler",
+            "Comme prévu",
+            "Service normal"
+        ]
+        
+        for _ in range(n_samples):
+            if random.random() < 0.7:  # 70% ont donné un feedback
+                sentiment = random.choice(['positif', 'négatif', 'neutre'])
+                if sentiment == 'positif':
+                    feedback = random.choice(positive_feedbacks)
+                elif sentiment == 'négatif':
+                    feedback = random.choice(negative_feedbacks)
+                else:
+                    feedback = random.choice(neutral_feedbacks)
+            else:
+                feedback = None
+                sentiment = None
+            
+            feedbacks.append(feedback)
+            sentiments.append(sentiment)
+            dates.append(df['date_de_remplissage'].iloc[_])
+        
+        self.feedback_df = pd.DataFrame({
+            'date': dates,
+            'feedback': feedbacks,
+            'sentiment': sentiments,
+            'age': df['age'],
+            'genre': df['genre']
+        })
+
+    def init_callbacks(self, app):
+        @app.callback(
+            [Output('sentiment-distribution', 'figure'),
+             Output('sentiment-timeline', 'figure'),
+             Output('sentiment-demographics', 'figure'),
+             Output('feedback-stats', 'children')],
+            [Input('date-range', 'start_date'),
+             Input('date-range', 'end_date')]
+        )
+        def update_sentiment_analysis(start_date, end_date):
+            df = self.feedback_df.copy()
+            
+            if start_date:
+                df = df[df['date'].dt.date >= pd.to_datetime(start_date).date()]
+            if end_date:
+                df = df[df['date'].dt.date <= pd.to_datetime(end_date).date()]
+            
+            # Statistiques de participation
+            total = len(df)
+            avec_feedback = df['feedback'].notna().sum()
+            sans_feedback = total - avec_feedback
+            pct_participation = (avec_feedback / total) * 100 if total > 0 else 0
+            
+            # Distribution des sentiments
+            sentiment_counts = df['sentiment'].value_counts()
+            fig_distribution = px.pie(
+                values=sentiment_counts.values,
+                names=sentiment_counts.index,
+                title="Distribution des sentiments",
+                color_discrete_map={'positif': '#28a745', 'négatif': '#dc3545', 'neutre': '#ffc107'}
+            )
+            
+            # Évolution temporelle
+            timeline_df = df.groupby(['date', 'sentiment']).size().reset_index(name='count')
+            fig_timeline = px.line(
+                timeline_df,
+                x='date',
+                y='count',
+                color='sentiment',
+                title="Évolution des sentiments dans le temps",
+                color_discrete_map={'positif': '#28a745', 'négatif': '#dc3545', 'neutre': '#ffc107'}
+            )
+            
+            # Analyse démographique
+            demo_df = df.groupby(['age', 'sentiment']).size().reset_index(name='count')
+            fig_demographics = px.scatter(
+                demo_df,
+                x='age',
+                y='count',
+                color='sentiment',
+                title="Distribution des sentiments par âge",
+                color_discrete_map={'positif': '#28a745', 'négatif': '#dc3545', 'neutre': '#ffc107'}
+            )
+            
+            # Statistiques de participation
+            stats = html.Div([
+                dbc.Row([
+                    dbc.Col([
+                        dbc.Card([
+                            dbc.CardBody([
+                                html.H4("Statistiques de participation", className="card-title"),
+                                html.Hr(),
+                                html.P([
+                                    html.Strong(f"Taux de participation: "),
+                                    f"{pct_participation:.1f}%"
+                                ]),
+                                html.P([
+                                    html.Strong(f"Nombre de feedbacks: "),
+                                    f"{avec_feedback:,}"
+                                ]),
+                                html.P([
+                                    html.Strong(f"Sans feedback: "),
+                                    f"{sans_feedback:,}"
+                                ])
+                            ])
+                        ])
+                    ])
+                ])
+            ])
+            
+            return fig_distribution, fig_timeline, fig_demographics, stats
+
+    def render(self):
+        return dbc.Container([
+            dbc.Row([
+                dbc.Col([
+                    html.H1("Analyse des Sentiments", className="mb-4"),
+                    html.Hr(),
+                ], md=12)
+            ]),
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardBody([
+                            html.H5("Filtres", className="card-title"),
+                            html.Hr(),
+                            html.Label("Période d'analyse:"),
+                            dcc.DateRangePicker(
+                                id='date-range',
+                                start_date=datetime(2023, 1, 1),
+                                end_date=datetime(2024, 12, 31),
+                                display_format='DD/MM/YYYY'
+                            )
+                        ])
+                    ], className="mb-4")
+                ], md=12)
+            ]),
+            dbc.Row([
+                dbc.Col([
+                    html.Div(id="feedback-stats")
+                ], md=12, className="mb-4")
+            ]),
+            dbc.Row([
+                dbc.Col([
+                    dcc.Graph(id="sentiment-distribution")
+                ], md=4),
+                dbc.Col([
+                    dcc.Graph(id="sentiment-timeline")
+                ], md=8)
+            ], className="mb-4"),
+            dbc.Row([
+                dbc.Col([
+                    dcc.Graph(id="sentiment-demographics")
+                ], md=12)
             ])
         ], fluid=True)

@@ -18,26 +18,56 @@ class CampaignAnalysisPage:
             [Input('city-filter', 'value')]
         )
         def update_district_options(city):
-            df = self.data_service.get_donor_data()
-            if city != 'all':
-                df = df[df['ville'].str.contains(city, case=False, na=False)]
-            districts = df['arrondissement_de_residence'].unique()
-            return [{'label': d, 'value': d} for d in sorted(districts)]
-        
+            try:
+                df = self.data_service.get_donor_data()
+                
+                # Vérifier si les colonnes existent
+                if 'ville' not in df.columns:
+                    print("Colonne 'ville' non trouvée. Colonnes disponibles:", df.columns)
+                    return []
+                
+                if city and city != 'all':
+                    df = df[df['ville'].str.contains(city, case=False, na=False)]
+                
+                # Utiliser une valeur par défaut si la colonne n'existe pas
+                district_column = 'arrondissement' if 'arrondissement' in df.columns else 'arrondissement_de_residence'
+                if district_column not in df.columns:
+                    print(f"Colonne {district_column} non trouvée. Colonnes disponibles:", df.columns)
+                    return []
+                
+                districts = df[district_column].dropna().unique()
+                return [{'label': str(d), 'value': str(d)} for d in sorted(districts)]
+            except Exception as e:
+                print(f"Erreur dans update_district_options: {str(e)}")
+                return []
+
         @app.callback(
             Output('neighborhood-filter', 'options'),
             [Input('city-filter', 'value'),
              Input('district-filter', 'value')]
         )
         def update_neighborhood_options(city, district):
-            df = self.data_service.get_donor_data()
-            if city != 'all':
-                df = df[df['ville'].str.contains(city, case=False, na=False)]
-            if district:
-                df = df[df['arrondissement_de_residence'] == district]
-            neighborhoods = df['quartier_de_residence'].unique()
-            return [{'label': n, 'value': n} for n in sorted(neighborhoods)]
-        
+            try:
+                df = self.data_service.get_donor_data()
+                
+                if city and city != 'all':
+                    df = df[df['ville'].str.contains(city, case=False, na=False)]
+                
+                district_column = 'arrondissement' if 'arrondissement' in df.columns else 'arrondissement_de_residence'
+                if district and district_column in df.columns:
+                    df = df[df[district_column] == district]
+                
+                neighborhood_column = 'quartier' if 'quartier' in df.columns else 'quartier_de_residence'
+                if neighborhood_column not in df.columns:
+                    print(f"Colonne {neighborhood_column} non trouvée. Colonnes disponibles:", df.columns)
+                    return []
+                
+                neighborhoods = df[neighborhood_column].dropna().unique()
+                return [{'label': str(n), 'value': str(n)} for n in sorted(neighborhoods)]
+            except Exception as e:
+                print(f"Erreur dans update_neighborhood_options: {str(e)}")
+                return []
+
         @app.callback(
             [Output('total-donations', 'children'),
              Output('eligibility-rate', 'children'),
@@ -53,83 +83,88 @@ class CampaignAnalysisPage:
         def update_campaign_analysis(city, district, neighborhood, start_date, end_date):
             try:
                 df = self.data_service.get_donor_data()
-                df['date_de_remplissage'] = pd.to_datetime(df['date_de_remplissage'])
                 
-                # Appliquer les filtres
-                if city != 'all':
+                # Vérifier et convertir la colonne de date
+                date_column = 'date_de_remplissage'
+                if date_column not in df.columns:
+                    print(f"Colonne {date_column} non trouvée. Colonnes disponibles:", df.columns)
+                    raise ValueError(f"Colonne {date_column} non trouvée")
+                
+                df[date_column] = pd.to_datetime(df[date_column])
+                
+                # Appliquer les filtres avec vérification des colonnes
+                if city and city != 'all' and 'ville' in df.columns:
                     df = df[df['ville'].str.contains(city, case=False, na=False)]
-                if district:
-                    df = df[df['arrondissement_de_residence'] == district]
-                if neighborhood:
-                    df = df[df['quartier_de_residence'] == neighborhood]
+                
+                district_column = 'arrondissement' if 'arrondissement' in df.columns else 'arrondissement_de_residence'
+                if district and district_column in df.columns:
+                    df = df[df[district_column] == district]
+                
+                neighborhood_column = 'quartier' if 'quartier' in df.columns else 'quartier_de_residence'
+                if neighborhood and neighborhood_column in df.columns:
+                    df = df[df[neighborhood_column] == neighborhood]
+                
                 if start_date:
-                    df = df[df['date_de_remplissage'].dt.date >= pd.to_datetime(start_date).date()]
+                    df = df[df[date_column].dt.date >= pd.to_datetime(start_date).date()]
                 if end_date:
-                    df = df[df['date_de_remplissage'].dt.date <= pd.to_datetime(end_date).date()]
+                    df = df[df[date_column].dt.date <= pd.to_datetime(end_date).date()]
                 
                 # Calculer les statistiques
                 total_donations = len(df)
-                eligibility_rate = (df['eligibilite_au_don'] == 'eligible').mean()
-                total_neighborhoods = df['quartier_de_residence'].nunique()
+                eligibility_column = 'eligibilite_au_don'
+                if eligibility_column in df.columns:
+                    eligibility_rate = (df[eligibility_column].str.lower() == 'eligible').mean()
+                else:
+                    eligibility_rate = 0
                 
-                # 1. Graphique temporel avec meilleure échelle
-                timeline_df = df.groupby('date_de_remplissage').size().reset_index(name='Nombre de dons')
+                total_neighborhoods = df[neighborhood_column].nunique() if neighborhood_column in df.columns else 0
+                
+                # Créer les graphiques
+                timeline_df = df.groupby(date_column).size().reset_index(name='Nombre de dons')
                 timeline_fig = px.line(
                     timeline_df,
-                    x='date_de_remplissage',
+                    x=date_column,
                     y='Nombre de dons',
-                    title="Nombre de dons en fonction de la date de remplissage",
-                
-
+                    title="Évolution des dons dans le temps"
                 )
-                
-                # Améliorer l'échelle et le style
                 timeline_fig.update_layout(
                     xaxis_title="Date",
                     yaxis_title="Nombre de dons",
                     template='plotly_white',
-                    yaxis=dict(
-                        rangemode='tozero',
-                        tickformat=',d'
-                    ),
+                    yaxis=dict(rangemode='tozero', tickformat=',d'),
                     margin=dict(l=50, r=20, t=40, b=30)
                 )
-                # Changer la couleur de la ligne en rouge
                 timeline_fig.update_traces(line=dict(color='#c62828'))
-                # 2. Distribution de l'éligibilité par âge
-                eligible_df = df[df['eligibilite_au_don'] == 'eligible'].copy()
                 
-                age_bins = list(range(0, 101, 5))
-                age_labels = [f"{i}-{i+4}" for i in range(0, 96, 5)]
-                
-                eligible_df['age_group'] = pd.cut(
-                    eligible_df['age'],
-                    bins=age_bins,
-                    labels=age_labels,
-                    include_lowest=True
-                )
-                
-                age_dist = eligible_df.groupby('age_group').size().reset_index(name='Nombre de donneurs éligibles')
-                
-                age_dist_fig = px.bar(
-                    age_dist,
-                    x='age_group',
-                    y='Nombre de donneurs éligibles',
-                    title="Distribution des donneurs éligibles par âge",
-                    labels={'age_group': 'Groupe d\'âge'},
-                    color_continuous_scale=['#1a1f3c', '#c62828']
-                )
-                
-                age_dist_fig.update_layout(
-                    template='plotly_white',
-                    xaxis_tickangle=-45,
-                    bargap=0.1,
-                    margin=dict(l=50, r=20, t=40, b=100),
-                    yaxis=dict(
-                        rangemode='tozero',
-                        tickformat=',d'
+                # Distribution par âge
+                age_dist_fig = go.Figure()
+                if 'age' in df.columns and eligibility_column in df.columns:
+                    eligible_df = df[df[eligibility_column].str.lower() == 'eligible'].copy()
+                    age_bins = list(range(0, 101, 5))
+                    age_labels = [f"{i}-{i+4}" for i in range(0, 96, 5)]
+                    
+                    eligible_df['age_group'] = pd.cut(
+                        eligible_df['age'],
+                        bins=age_bins,
+                        labels=age_labels,
+                        include_lowest=True
                     )
-                )
+                    
+                    age_dist = eligible_df.groupby('age_group').size().reset_index(name='Nombre de donneurs éligibles')
+                    age_dist_fig = px.bar(
+                        age_dist,
+                        x='age_group',
+                        y='Nombre de donneurs éligibles',
+                        title="Distribution des donneurs éligibles par âge"
+                    )
+                    age_dist_fig.update_layout(
+                        xaxis_title="Groupe d'âge",
+                        yaxis_title="Nombre de donneurs",
+                        template='plotly_white',
+                        xaxis_tickangle=-45,
+                        bargap=0.1,
+                        margin=dict(l=50, r=20, t=40, b=100)
+                    )
                 
                 return (
                     f"{total_donations:,}",
@@ -160,153 +195,146 @@ class CampaignAnalysisPage:
              Input('campaign-date-range', 'end_date')]
         )
         def update_campaign_kpis(start_date, end_date):
-            df = self.data_service.get_donor_data()
-            df['date_de_remplissage'] = pd.to_datetime(df['date_de_remplissage'])
-            
-            if df.empty:
-                return "0", "N/A", "0%"
-            
-            # Conversion des dates
-            start_date = pd.to_datetime(start_date)
-            end_date = pd.to_datetime(end_date)
-            
-            # Filtrage par date
-            mask = (df['date_de_remplissage'] >= start_date) & (df['date_de_remplissage'] <= end_date)
-            filtered_df = df[mask]
-            
-            # Total des dons
-            total_dons = len(filtered_df)
-            
-            # Période la plus active (mois)
-            if not filtered_df.empty:
-                monthly_counts = filtered_df['date_de_remplissage'].dt.to_period('M').value_counts()
-                peak_month = monthly_counts.index[0] if not monthly_counts.empty else "N/A"
-                peak_month = str(peak_month)
-            else:
-                peak_month = "N/A"
+            try:
+                df = self.data_service.get_donor_data()
+                date_column = 'date_de_remplissage'
                 
-            # Taux de croissance
-            if not filtered_df.empty:
-                monthly_data = filtered_df.groupby(filtered_df['date_de_remplissage'].dt.to_period('M')).size()
-                if len(monthly_data) > 1:
-                    first_month = monthly_data.iloc[0]
-                    last_month = monthly_data.iloc[-1]
-                    growth = ((last_month - first_month) / first_month) * 100
-                    growth_rate = f"{growth:+.1f}%"
+                if date_column not in df.columns:
+                    return "0", "N/A", "0%"
+                
+                df[date_column] = pd.to_datetime(df[date_column])
+                
+                if df.empty:
+                    return "0", "N/A", "0%"
+                
+                # Conversion des dates
+                start_date = pd.to_datetime(start_date)
+                end_date = pd.to_datetime(end_date)
+                
+                # Filtrage par date
+                mask = (df[date_column] >= start_date) & (df[date_column] <= end_date)
+                filtered_df = df[mask]
+                
+                # Total des dons
+                total_dons = len(filtered_df)
+                
+                # Période la plus active (mois)
+                if not filtered_df.empty:
+                    monthly_counts = filtered_df[date_column].dt.to_period('M').value_counts()
+                    peak_month = monthly_counts.index[0] if not monthly_counts.empty else "N/A"
+                    peak_month = str(peak_month)
+                else:
+                    peak_month = "N/A"
+                    
+                # Taux de croissance
+                if not filtered_df.empty:
+                    monthly_data = filtered_df.groupby(filtered_df[date_column].dt.to_period('M')).size()
+                    if len(monthly_data) > 1:
+                        first_month = monthly_data.iloc[0]
+                        last_month = monthly_data.iloc[-1]
+                        growth = ((last_month - first_month) / first_month) * 100
+                        growth_rate = f"{growth:+.1f}%"
+                    else:
+                        growth_rate = "N/A"
                 else:
                     growth_rate = "N/A"
-            else:
-                growth_rate = "N/A"
-            
-            return f"{total_dons:,}", peak_month, growth_rate
+                
+                return f"{total_dons:,}", peak_month, growth_rate
+                
+            except Exception as e:
+                print(f"Erreur dans update_campaign_kpis: {str(e)}")
+                return "0", "N/A", "0%"
 
     def render(self):
-        """Rendu de la page d'analyse des campagnes"""
         return html.Div([
-            # En-tête
-            html.Div([
-                html.H2("Analyse des Campagnes", className="mb-4"),
-                html.P("Suivez et analysez les performances de vos campagnes de don de sang", className="text-muted")
-            ], className="header-section mb-4"),
-            
-            # Filtres
-            html.Div([
-                dbc.Card([
-                    dbc.CardBody([
-                        dbc.Row([
-                            dbc.Col([
-                                html.Label("Ville"),
+            dbc.Row([
+                dbc.Col([
+                    html.H2("Analyse des Campagnes de Don", className="text-primary mb-4")
+                ])
+            ]),
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        dbc.CardBody([
+                            html.H4("Filtres", className="card-title"),
+                            html.Div([
+                                dbc.Label("Ville"),
                                 dcc.Dropdown(
                                     id='city-filter',
                                     options=[
-                                        {'label': 'Toutes', 'value': 'all'},
+                                        {'label': 'Toutes les villes', 'value': 'all'},
                                         {'label': 'Douala', 'value': 'douala'},
                                         {'label': 'Yaoundé', 'value': 'yaounde'}
                                     ],
                                     value='all',
-                                    className="mb-2"
-                                )
-                            ], md=3),
-                            dbc.Col([
-                                html.Label("Arrondissement"),
+                                    className="mb-3"
+                                ),
+                                dbc.Label("Arrondissement"),
                                 dcc.Dropdown(
                                     id='district-filter',
-                                    placeholder="Sélectionner un arrondissement",
-                                    className="mb-2"
-                                )
-                            ], md=3),
-                            dbc.Col([
-                                html.Label("Quartier"),
+                                    options=[],
+                                    className="mb-3"
+                                ),
+                                dbc.Label("Quartier"),
                                 dcc.Dropdown(
                                     id='neighborhood-filter',
-                                    placeholder="Sélectionner un quartier",
-                                    className="mb-2"
-                                )
-                            ], md=3),
-                            dbc.Col([
-                                html.Label("Période"),
+                                    options=[],
+                                    className="mb-3"
+                                ),
+                                dbc.Label("Période"),
                                 dcc.DatePickerRange(
                                     id='date-range',
-                                    className="mb-2"
+                                    className="mb-3"
                                 )
-                            ], md=3)
+                            ])
+                        ])
+                    ], className="mb-4")
+                ], md=3),
+                dbc.Col([
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.Card([
+                                dbc.CardBody([
+                                    html.H5("Total des dons", className="card-title"),
+                                    html.H3(id="total-donations", className="text-primary")
+                                ])
+                            ])
+                        ]),
+                        dbc.Col([
+                            dbc.Card([
+                                dbc.CardBody([
+                                    html.H5("Taux d'éligibilité", className="card-title"),
+                                    html.H3(id="eligibility-rate", className="text-success")
+                                ])
+                            ])
+                        ]),
+                        dbc.Col([
+                            dbc.Card([
+                                dbc.CardBody([
+                                    html.H5("Quartiers couverts", className="card-title"),
+                                    html.H3(id="total-neighborhoods", className="text-info")
+                                ])
+                            ])
+                        ])
+                    ], className="mb-4"),
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.Card([
+                                dbc.CardBody([
+                                    dcc.Graph(id="donations-timeline")
+                                ])
+                            ])
+                        ])
+                    ], className="mb-4"),
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.Card([
+                                dbc.CardBody([
+                                    dcc.Graph(id="eligibility-age-distribution")
+                                ])
+                            ])
                         ])
                     ])
-                ], className="filter-card mb-4")
-            ], className="filter-section"),
-            
-            # Statistiques générales
-            dbc.Row([
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardBody([
-                            html.H4("Nombre total de dons", className="card-title"),
-                            html.H2(id="total-donations", className="text-primary")
-                        ])
-                    ], className="stat-card")
-                ], md=4),
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardBody([
-                            html.H4("Taux d'éligibilité", className="card-title"),
-                            html.H2(id="eligibility-rate", className="text-success")
-                        ])
-                    ], className="stat-card")
-                ], md=4),
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardBody([
-                            html.H4("Nombre de quartiers", className="card-title"),
-                            html.H2(id="total-neighborhoods", className="text-info")
-                        ])
-                    ], className="stat-card")
-                ], md=4)
-            ], className="mb-4"),
-            
-            # Graphiques
-            dbc.Row([
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardHeader("Évolution des dons"),
-                        dbc.CardBody([
-                            dcc.Graph(
-                                id='donations-timeline',
-                                config={'displayModeBar': False}
-                            )
-                        ])
-                    ], className="chart-card mb-4")
-                ], md=12),
-                
-                dbc.Col([
-                    dbc.Card([
-                        dbc.CardHeader("Distribution par âge des donneurs éligibles"),
-                        dbc.CardBody([
-                            dcc.Graph(
-                                id='eligibility-age-distribution',
-                                config={'displayModeBar': False}
-                            )
-                        ])
-                    ], className="chart-card")
-                ], md=12)
+                ], md=9)
             ])
-        ], className="campaign-container")
+        ])
