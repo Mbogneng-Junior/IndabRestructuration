@@ -214,7 +214,7 @@ class HealthAnalysisPage:
                     x='count',
                     y='issue',
                     orientation='h',
-                    title="Détail des problèmes de santé",
+                    title="Problèmes de santé",
                     labels={'issue': 'Problème', 'count': 'Nombre de cas'},
                     color='count',
                     color_continuous_scale=['#8B0000', '#000000']

@@ -422,7 +422,17 @@ class MappingPage:
                 showlegend=False
             )
 
-            return total_arrondissements,total_quartiers,m._repr_html_(), district_fig, quartier_fig, city_fig, proportions_stats
+            return (
+                total_arrondissements,
+                total_quartiers,
+                total_villes,  # ← AJOUTÉ
+                m._repr_html_(),
+                district_fig,
+                quartier_fig,
+                city_fig,
+                proportions_stats
+            )
+
 
    
 
