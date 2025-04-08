@@ -288,6 +288,7 @@ class HealthAnalysisPage:
         """Rendu de la page d'analyse de santé"""
         return dbc.Container([
             # Filtres (position fixe, z-index élevé)
+            html.H1("Analyse des Conditions de santé et éligibilité", className="mb-4 text-black"),
             dbc.Card([
                 dbc.CardBody([
                     dbc.Row([
