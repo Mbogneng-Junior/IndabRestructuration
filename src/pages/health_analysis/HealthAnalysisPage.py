@@ -11,6 +11,12 @@ class HealthAnalysisPage:
     def __init__(self):
         self.data_service = DataService()
 
+        df = self.data_service.get_donor_data()
+        self.total_donors = len(df)
+        self.successful_donations = len(df[df['eligibilite_au_don'] == 'eligible'])
+        self.ineligible_donations = len(df[df['eligibilite_au_don'] == 'temporairement non-eligible'])
+        self.def_ineligible_donations = len(df[df['eligibilite_au_don'] == 'définitivement non-eligible'])
+
     def init_callbacks(self, app):
         @app.callback(
             Output('health-location-filter', 'options'),
@@ -22,13 +28,13 @@ class HealthAnalysisPage:
             return [{'label': loc, 'value': loc} for loc in locations]
         
         @app.callback(
-            [Output('detailed-stats', 'children'),
-             Output('top-health-issues', 'figure'),
-             Output('top-unavailability-reasons', 'figure'),
-             Output('temporary-unavailability-chart', 'figure'),
-             Output('geographic-health-analysis', 'figure'),
-             Output('health-issues-chart', 'figure'),
-             ],
+            [
+                # Output('top-health-issues', 'figure'),
+                # Output('top-unavailability-reasons', 'figure'),
+                Output('temporary-unavailability-chart', 'figure'),
+                Output('geographic-health-analysis', 'figure'),
+                Output('health-issues-chart', 'figure'),
+            ],
             [Input('health-location-filter', 'value'),
              Input('health-date-range', 'start_date'),
              Input('health-date-range', 'end_date')]
@@ -37,6 +43,7 @@ class HealthAnalysisPage:
             try:
                 df = self.data_service.get_donor_data()
                 df['date_de_remplissage'] = pd.to_datetime(df['date_de_remplissage'])
+                
                 
                 # Définir les colonnes pour chaque catégorie
                 health_cols = [col for col in df.columns if 'raison_de_non-eligibilité_totale__' in col]
@@ -62,51 +69,34 @@ class HealthAnalysisPage:
                 pct_temp = (temp_unavailable / total) * 100 if total > 0 else 0
                 pct_non = (non_eligible / total) * 100 if total > 0 else 0
                 
-                """detailed_stats = html.Div([
-                    dbc.Row([
-                        dbc.Col([
-                            html.H4("Donneurs éligibles", className="h6"),
-                            html.P(f"{eligible} ({pct_eligible:.1f}%)", className="h3 text-primary")
-                        ], width=4),
-                        dbc.Col([
-                            html.H4("Temporairement non disponible", className="h6"),
-                            html.P(f"{temp_unavailable} ({pct_temp:.1f}%)", className="h3 text-danger")
-                        ], width=4),
-                        dbc.Col([
-                            html.H4("Non éligibles", className="h6"),
-                            html.P(f"{non_eligible} ({pct_non:.1f}%)", className="h3 text-warning")
-                        ], width=4)
-                    ])
-                ])"""
+                
                 detailed_stats = html.Div([
-
-
-                                        dbc.Row([
-                                    dbc.Col([
-                                        dbc.Card([
-                                            dbc.CardBody([
-                                                html.H4("Donneurs éligibles", className="h7"),
-                                                html.P(f"{eligible} ({pct_eligible:.1f}%)", className="h4 text-primary")
-                                            ])
-                                        ], className="stat-card")
-                                    ], md=4),
-                                    dbc.Col([
-                                        dbc.Card([
-                                            dbc.CardBody([
-                                                html.H4("Temporairement non disponible", className="h7"),
-                                                html.P(f"{temp_unavailable} ({pct_temp:.1f}%)", className="h4 text-danger")
-                                            ])
-                                        ], className="stat-card")
-                                    ], md=4),
-                                    dbc.Col([
-                                        dbc.Card([
-                                            dbc.CardBody([
-                                                html.H4("Non éligibles", className="h7"),
-                                                html.P(f"{non_eligible} ({pct_non:.1f}%)", className="h4 text-warning")
-                                            ])
-                                        ], className="stat-card")
-                                    ], md=4)
-                                ], className="mb-4"),
+                        dbc.Row([
+                            dbc.Col([
+                                dbc.Card([
+                                    dbc.CardBody([
+                                        html.H4("Donneurs éligibles", className="h7"),
+                                        html.P(f"{eligible} ({pct_eligible:.1f}%)", className="h4 text-primary")
+                                    ])
+                                ], className="stat-card")
+                            ], md=4),
+                            dbc.Col([
+                                dbc.Card([
+                                    dbc.CardBody([
+                                        html.H4("Temporairement non disponible", className="h7"),
+                                        html.P(f"{temp_unavailable} ({pct_temp:.1f}%)", className="h4 text-danger")
+                                    ])
+                                ], className="stat-card")
+                            ], md=4),
+                            dbc.Col([
+                                dbc.Card([
+                                    dbc.CardBody([
+                                        html.H4("Non éligibles", className="h7"),
+                                        html.P(f"{non_eligible} ({pct_non:.1f}%)", className="h4 text-warning")
+                                    ])
+                                ], className="stat-card")
+                            ], md=4)
+                        ], className="mb-4"),
                     ])
                 
             
@@ -264,9 +254,8 @@ class HealthAnalysisPage:
                 ], bordered=True, hover=True, className="interpretation-table")
                 
                 return (
-                    detailed_stats,
-                    top_health_fig,
-                    top_unavail_fig,
+                    # top_health_fig,
+                    # top_unavail_fig,
                     temp_fig,
                     geo_fig,
                     health_fig
@@ -287,7 +276,13 @@ class HealthAnalysisPage:
     def render(self):
         """Rendu de la page d'analyse de santé"""
         return dbc.Container([
-            # Filtres (position fixe, z-index élevé)
+
+            dbc.Row([
+                dbc.Col([
+                    html.H1("Conditions de Santé & Éligibilité", className="mb-4")
+                ])
+            ]),
+
             dbc.Card([
                 dbc.CardBody([
                     dbc.Row([
@@ -317,10 +312,77 @@ class HealthAnalysisPage:
                 ])
             ], className="mb-4", style={'position': 'relative', 'zIndex': 1000}),
 
-            # Statistiques détaillées en haut
-            dbc.Card([
-                dbc.CardHeader("Statistiques détaillées"),
-                dbc.CardBody(id='detailed-stats')
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        html.Div([
+                            html.Span(className="stat-icon-bg"),
+                            html.I(className="fas fa-users stat-icon")
+                        ], className="stat-icon-wrapper"),
+                        html.H3(
+                            children=f"{self.total_donors:,}", 
+                            className="stat-value"),
+                        html.P("Participants", className="stat-label"),
+                        html.Small("Total participants", className="stat-detail")
+                    ], className="stat-card")
+                ], xs=12, sm=6, md=4, lg=3, className="mb-3"),
+
+                dbc.Col([
+                    dbc.Card([
+                        html.Div([
+                            html.Span(className="stat-icon-bg success"),
+                            html.I(className="fas fa-check-circle stat-icon")
+                        ], className="stat-icon-wrapper"),
+                        html.H3(
+                            children=f"{(self.successful_donations/self.total_donors*100):.1f}%", 
+                            className="stat-value text-success"),
+                        html.P("Éligibles", className="stat-label"),
+                        html.Small(f"{self.successful_donations} au total", className="stat-detail")
+                    ], className="stat-card")
+                ], xs=12, sm=6, md=4, lg=3, className="mb-3"),
+
+                dbc.Col([
+                    dbc.Card([
+                        html.Div([
+                            html.Span(className="stat-icon-bg success"),
+                            html.I(className="fas fa-exclamation-circle stat-icon")
+                        ], className="stat-icon-wrapper"),
+                        html.H3(
+                            children=f"{(self.ineligible_donations/self.total_donors*100):.1f}%", 
+                            className="stat-value text-warning"),
+                        html.P("Temporairement non-Éligibles", className="stat-label"),
+                        html.Small(f"{self.ineligible_donations} au total", className="stat-detail")
+                    ], className="stat-card")
+                ], xs=12, sm=6, md=4, lg=3, className="mb-3"),
+
+                dbc.Col([
+                    dbc.Card([
+                        html.Div([
+                            html.Span(className="stat-icon-bg success"),
+                            html.I(className="fas fa-times-circle stat-icon")
+                        ], className="stat-icon-wrapper"),
+                        html.H3(
+                            children=f"{(self.def_ineligible_donations/self.total_donors*100):.1f}%", 
+                            className="stat-value text-danger"),
+                        html.P("non-Éligibles", className="stat-label"),
+                        html.Small(f"{self.def_ineligible_donations} au total", className="stat-detail")
+                    ], className="stat-card")
+                ], xs=12, sm=6, md=4, lg=3, className="mb-3"),
+
+                # dbc.Col([
+                #     dbc.Card([
+                #         html.Div([
+                #             html.Span(className="stat-icon-bg success"),
+                #             html.I(className="fas fa-star stat-icon")
+                #         ], className="stat-icon-wrapper"),
+                #         html.H3(
+                #             children=f"{(returning_donors / total_donors * 100):.1f}%", 
+                #             className="stat-value text-info"),
+                #         html.P("Participants Fidèles", className="stat-label"),
+                #         html.Small(f"{returning_donors} Participants Fidèles", className="stat-detail")
+                #     ], className="stat-card")
+                # ], xs=12, sm=6, md=4, lg=4, className="mb-3")
+
             ], className="mb-4"),
             
             # Contenu principal
@@ -328,26 +390,26 @@ class HealthAnalysisPage:
                 # Première colonne (plus petite)
                 dbc.Col([
                     # Top 3 problèmes de santé
-                    dbc.Card([
-                        dbc.CardHeader("Top 3 des problèmes de santé"),
-                        dbc.CardBody([
-                            dcc.Graph(
-                                id='top-health-issues',
-                                config={'displayModeBar': False}
-                            )
-                        ])
-                    ], className="mb-4"),
+                    # dbc.Card([
+                    #     dbc.CardHeader("Top 3 des problèmes de santé"),
+                    #     dbc.CardBody([
+                    #         dcc.Graph(
+                    #             id='top-health-issues',
+                    #             config={'displayModeBar': False}
+                    #         )
+                    #     ])
+                    # ], className="mb-4"),
                     
                     # Top 3 raisons d'indisponibilité
-                    dbc.Card([
-                        dbc.CardHeader("Top 3 des raisons d'indisponibilité"),
-                        dbc.CardBody([
-                            dcc.Graph(
-                                id='top-unavailability-reasons',
-                                config={'displayModeBar': False}
-                            )
-                        ])
-                    ])
+                    # dbc.Card([
+                    #     dbc.CardHeader("Top 3 des raisons d'indisponibilité"),
+                    #     dbc.CardBody([
+                    #         dcc.Graph(
+                    #             id='top-unavailability-reasons',
+                    #             config={'displayModeBar': False}
+                    #         )
+                    #     ])
+                    # ])
                 ], width=4),
                 
                 # Deuxième colonne (plus grande)
