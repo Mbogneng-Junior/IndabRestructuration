@@ -60,8 +60,8 @@ ARR_COORD = {
 
 class MappingPage:
     total_arrondissements = 0
-    total_quartiers = 0
-    
+    total_quartiers=0
+    total_villes=0
     def __init__(self):
         self.data_service = DataService()
         self.cities = VILLES_COORD
@@ -132,6 +132,7 @@ class MappingPage:
         @app.callback(
             [Output("stats-arrondissements", "children"),
              Output("stats-quartiers", "children"),
+             Output("stats-villes", "children"),
              Output("map-container", "srcDoc"),
              Output("district-chart", "figure"),
              Output("quartier-chart", "figure"),
@@ -147,8 +148,9 @@ class MappingPage:
             df = self.data_service.get_donor_data()
 
             # Calculer les statistiques
-            total_arrondissements = df['arrondissement_de_residence'].nunique()
-            total_quartiers = df['quartier_de_residence'].nunique()
+            total_arrondissements = df['arrondissement_de_residence'].nunique()-1
+            total_quartiers = df['quartier_de_residence'].nunique()-1
+            total_villes = df['ville'].nunique()-1
             df['date_de_remplissage'] = pd.to_datetime(df['date_de_remplissage'])
             
             # Ajouter les coordonnées
@@ -307,8 +309,8 @@ class MappingPage:
                 marker_colors=['#1a1f3c', '#c62828']
             )])
             fig_ville.update_layout(
-                title="Proportion des villes non précisées",
-                height=300,
+                # title="Proportion des villes non précisées",
+                
                 showlegend=True
             )
             
@@ -319,8 +321,8 @@ class MappingPage:
                 marker_colors=['#1a1f3c', '#c62828']
             )])
             fig_arr.update_layout(
-                title="Proportion des arrondissements non précisés",
-                height=300,
+                # title="Proportion des arrondissements non précisés",
+               
                 showlegend=True
             )
             
@@ -331,37 +333,108 @@ class MappingPage:
                 marker_colors=['#1a1f3c', '#c62828']
             )])
             fig_quartier.update_layout(
-                title="Proportion des quartiers non précisés",
-                height=300,
+                # title="Proportion des quartiers non précisés",
                 showlegend=True
             )
             
             proportions_stats = html.Div([
                 dbc.Row([
                     dbc.Col([
-                        dcc.Graph(figure=fig_ville)
+                        dbc.Card([
+                            dbc.CardHeader("Proportion des villes non précisées"),
+                            dbc.CardBody([
+                                dcc.Graph(figure=fig_ville)
+                            ])
+                    ], className="chart-card mb-4")
                     ], md=4),
                     dbc.Col([
-                        dcc.Graph(figure=fig_arr)
+                        dbc.Card([
+                            dbc.CardHeader("Proportion des arrondissements non précisés"),
+                            dbc.CardBody([
+                                dcc.Graph(figure=fig_arr)
+                            ])
+                        ], className="chart-card mb-4"),
                     ], md=4),
                     dbc.Col([
-                        dcc.Graph(figure=fig_quartier)
+                        dbc.Card([
+                            dbc.CardHeader("Proportion des quartiers non précisés"),
+                            dbc.CardBody([
+                                dcc.Graph(figure=fig_quartier)
+                            ])
+                        ], className="chart-card mb-4")
                     ], md=4)
                 ])
             ])
 
-            # Sauvegarder la carte en HTML
-            map_html = m._repr_html_()
+            # Filtrer les données pour les graphiques
+            district_df = df[~df['arrondissement_de_residence'].isin(['pas précisé', np.nan])]['arrondissement_de_residence'].value_counts().reset_index()
+            district_df.columns = ['arrondissement', 'nombre']
             
+            quartier_df = df[~df['quartier_de_residence'].isin(['pas précisé', np.nan])]['quartier_de_residence'].value_counts().reset_index()
+            quartier_df.columns = ['quartier', 'nombre']
+            
+            city_df = df[~df['ville'].isin(['inconnu', np.nan])]['ville'].value_counts().reset_index()
+            city_df.columns = ['ville', 'nombre']
+
+            # Créer les graphiques avec les données filtrées
+            district_fig = px.bar(
+                district_df,
+                x='arrondissement',
+                y='nombre',
+                color='nombre',
+                color_continuous_scale=['#1a1f3c', '#c62828']
+            )
+            district_fig.update_layout(
+                height=500,
+                plot_bgcolor='white',
+                paper_bgcolor='white',
+                font={'color': '#1a1f3c'},
+                showlegend=False
+            )
+
+            quartier_fig = px.bar(
+                quartier_df,
+                x='quartier',
+                y='nombre',
+                color='nombre',
+                color_continuous_scale=['#1a1f3c', '#c62828']
+            )
+            quartier_fig.update_layout(
+                height=500,
+                plot_bgcolor='white',
+                paper_bgcolor='white',
+                font={'color': '#1a1f3c'},
+                showlegend=False
+            )
+
+            city_fig = px.bar(
+                city_df,
+                x='ville',
+                y='nombre',
+                color='nombre',
+                color_continuous_scale=['#1a1f3c', '#c62828']
+            )
+            city_fig.update_layout(
+                height=500,
+                plot_bgcolor='white',
+                paper_bgcolor='white',
+                font={'color': '#1a1f3c'},
+                showlegend=False
+            )
+
             return (
-                f"{total_arrondissements:,}",
-                f"{total_quartiers:,}",
-                map_html,
+                total_arrondissements,
+                total_quartiers,
+                total_villes,  # ← AJOUTÉ
+                m._repr_html_(),
                 district_fig,
                 quartier_fig,
                 city_fig,
                 proportions_stats
             )
+
+
+   
 
     def render(self):
         return dbc.Container([
@@ -411,6 +484,20 @@ class MappingPage:
                     dbc.Card([
                         html.Div([
                             html.Span(className="stat-icon-bg"),
+                            html.I(className="fas fa-city stat-icon")
+                        ], className="stat-icon-wrapper"),
+                        html.H3(id="stats-villes",
+                                children=f"{self.total_villes}", 
+                                className="stat-value"),
+                        html.P("Villes", className="stat-label"),
+                        html.Small("Villes de résidence", className="stat-detail")
+                    ], className="stat-card")
+                ], xs=12, sm=6, md=4, lg=3, className="mb-3"),
+
+                dbc.Col([
+                    dbc.Card([
+                        html.Div([
+                            html.Span(className="stat-icon-bg"),
                             html.I(className="fas fa-building stat-icon")
                         ], className="stat-icon-wrapper"),
                         html.H3(id="stats-arrondissements",
@@ -441,7 +528,7 @@ class MappingPage:
             dbc.Row([
                 dbc.Col([
                     dbc.Card([
-                        dbc.CardHeader("Répartition des donneurs par ville"),
+                        dbc.CardHeader("Répartition des candidats par ville"),
                         dbc.CardBody([
                             dcc.Graph(
                                 id='city-chart',
@@ -452,7 +539,7 @@ class MappingPage:
                 ], md=12),
                 dbc.Col([
                     dbc.Card([
-                        dbc.CardHeader("Répartition des donneurs par arrondissement"),
+                        dbc.CardHeader("Répartition des candidats par arrondissement"),
                         dbc.CardBody([
                             dcc.Graph(
                                 id='district-chart',
@@ -464,7 +551,7 @@ class MappingPage:
                 
                 dbc.Col([
                     dbc.Card([
-                        dbc.CardHeader("Répartition des donneurs par quartier"),
+                        dbc.CardHeader("Répartition des candidats par quartier"),
                         dbc.CardBody([
                             dcc.Graph(
                                 id='quartier-chart',
