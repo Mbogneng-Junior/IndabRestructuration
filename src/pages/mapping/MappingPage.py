@@ -230,7 +230,7 @@ class MappingPage:
                     radius=8,
                     color='#ff0000',
                     fill=True,
-                    fillColor='#4a148c',
+                    fillColor='#',
                     fillOpacity=0.7,
                     popup=city_name.title(),
                     weight=2
