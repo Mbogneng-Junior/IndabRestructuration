@@ -10,6 +10,11 @@ from ...services.data.DataService import DataService
 class CampaignAnalysisPage:
     def __init__(self):
         self.data_service = DataService()
+        df = self.data_service.get_donor_data()
+        self.total_donors = len(df)
+        self.successful_donations = len(df[df['eligibilite_au_don'] == 'eligible'])
+        self.ineligible_donations = len(df[df['eligibilite_au_don'] == 'temporairement non-eligible'])
+        self.def_ineligible_donations = len(df[df['eligibilite_au_don'] == 'définitivement non-eligible'])
 
     def init_callbacks(self, app):
         from dash.dependencies import Input, Output, State
@@ -250,6 +255,80 @@ class CampaignAnalysisPage:
                     ], className="mb-4")
                 ])
             ]),
+
+             #  Statistiques
+            dbc.Row([
+                dbc.Col([
+                    dbc.Card([
+                        html.Div([
+                            html.Span(className="stat-icon-bg"),
+                            html.I(className="fas fa-users stat-icon")
+                        ], className="stat-icon-wrapper"),
+                        html.H3(
+                            children=f"{self.total_donors:,}", 
+                            className="stat-value"),
+                        html.P("Participants", className="stat-label"),
+                        html.Small("Total participants", className="stat-detail")
+                    ], className="stat-card")
+                ], xs=12, sm=6, md=4, lg=3, className="mb-3"),
+
+                dbc.Col([
+                    dbc.Card([
+                        html.Div([
+                            html.Span(className="stat-icon-bg success"),
+                            html.I(className="fas fa-check-circle stat-icon")
+                        ], className="stat-icon-wrapper"),
+                        html.H3(
+                            children=f"{(self.successful_donations/self.total_donors*100):.1f}%", 
+                            className="stat-value text-success"),
+                        html.P("Éligibles", className="stat-label"),
+                        html.Small(f"{self.successful_donations} au total", className="stat-detail")
+                    ], className="stat-card")
+                ], xs=12, sm=6, md=4, lg=3, className="mb-3"),
+
+                dbc.Col([
+                    dbc.Card([
+                        html.Div([
+                            html.Span(className="stat-icon-bg success"),
+                            html.I(className="fas fa-exclamation-circle stat-icon")
+                        ], className="stat-icon-wrapper"),
+                        html.H3(
+                            children=f"{(self.ineligible_donations/self.total_donors*100):.1f}%", 
+                            className="stat-value text-warning"),
+                        html.P("Temporairement non-Éligibles", className="stat-label"),
+                        html.Small(f"{self.ineligible_donations} au total", className="stat-detail")
+                    ], className="stat-card")
+                ], xs=12, sm=6, md=4, lg=3, className="mb-3"),
+
+                dbc.Col([
+                    dbc.Card([
+                        html.Div([
+                            html.Span(className="stat-icon-bg success"),
+                            html.I(className="fas fa-times-circle stat-icon")
+                        ], className="stat-icon-wrapper"),
+                        html.H3(
+                            children=f"{(self.def_ineligible_donations/self.total_donors*100):.1f}%", 
+                            className="stat-value text-danger"),
+                        html.P("non-Éligibles", className="stat-label"),
+                        html.Small(f"{self.def_ineligible_donations} au total", className="stat-detail")
+                    ], className="stat-card")
+                ], xs=12, sm=6, md=4, lg=3, className="mb-3"),
+
+                # dbc.Col([
+                #     dbc.Card([
+                #         html.Div([
+                #             html.Span(className="stat-icon-bg success"),
+                #             html.I(className="fas fa-star stat-icon")
+                #         ], className="stat-icon-wrapper"),
+                #         html.H3(
+                #             children=f"{(returning_donors / total_donors * 100):.1f}%", 
+                #             className="stat-value text-info"),
+                #         html.P("Participants Fidèles", className="stat-label"),
+                #         html.Small(f"{returning_donors} Participants Fidèles", className="stat-detail")
+                #     ], className="stat-card")
+                # ], xs=12, sm=6, md=4, lg=4, className="mb-3")
+
+            ], className="mb-4"),
             
             # Graphiques d'évolution et de densité
             dbc.Row([

@@ -285,10 +285,10 @@ class HealthAnalysisPage:
 
             dbc.Card([
                 dbc.CardBody([
-                    dbc.Row([
-                        dbc.Col([
-                            html.H4("Filtres ", className="card-title mb-3"),
+                    
+                            html.H4("Filtres", className="card-title mb-3"),
                             dbc.Row([
+                                # Zone géographique
                                 dbc.Col([
                                     html.Label("Zone géographique", className="mb-2"),
                                     dcc.Dropdown(
@@ -297,7 +297,24 @@ class HealthAnalysisPage:
                                         className="mb-3",
                                         style={'zIndex': 9999}
                                     )
+                                ]),
+
+                                # Niveau d'étude
+                                dbc.Col([
+                                    html.Label("Niveau d'étude", className="mb-2"),
+                                    dcc.Dropdown(
+                                        id='education-level-filter',
+                                        options=[
+                                            {'label': 'Primaire', 'value': 'primaire'},
+                                            {'label': 'Secondaire', 'value': 'secondaire'},
+                                            {'label': 'Supérieur', 'value': 'superieur'}
+                                        ],
+                                        placeholder="Sélectionner un niveau d'étude",
+                                        className="mb-3"
+                                    )
                                 ], md=6),
+
+                                # Période d'analyse
                                 dbc.Col([
                                     html.Label("Période d'analyse", className="mb-2"),
                                     dcc.DatePickerRange(
@@ -305,9 +322,56 @@ class HealthAnalysisPage:
                                         className="mb-3",
                                         style={'zIndex': 9999}
                                     )
-                                ], md=6)
-                            ])
-                        ])
+                                ], className="mb-3"),
+
+                            ]),
+
+                            dbc.Row([   # Religion
+                                            dbc.Col([
+                                                html.Label("Religion", className="mb-2"),
+                                                dcc.Dropdown(
+                                                    id='religion-filter',
+                                                    options=[
+                                                        {'label': 'Chrétienne', 'value': 'chretienne'},
+                                                        {'label': 'Musulmane', 'value': 'musulmane'},
+                                                        {'label': 'Autres', 'value': 'autres'}
+                                                    ],
+                                                    placeholder="Sélectionner une religion",
+                                                    className="mb-3"
+                                                )
+                                            ], className="mb-3"),
+
+                                            # Genre
+                                    dbc.Col([
+                                        html.Label("Genre", className="mb-2"),
+                                        dcc.Dropdown(
+                                            id='gender-filter',
+                                            options=[
+                                                {'label': 'Masculin', 'value': 'masculin'},
+                                                {'label': 'Féminin', 'value': 'feminin'},
+                                                {'label': 'Autre', 'value': 'autre'}
+                                            ],
+                                            placeholder="Sélectionner un genre",
+                                            className="mb-3"
+                                        )
+                                    ], className="mb-3"),
+
+                                    # Tranche d'âge
+                                    dbc.Col([
+                                        html.Label("Tranche d'âge", className="mb-2"),
+                                        dcc.Dropdown(
+                                            id='age-range-filter',
+                                            options=[
+                                                {'label': '0-17 ans', 'value': '0-17'},
+                                                {'label': '18-35 ans', 'value': '18-35'},
+                                                {'label': '36-60 ans', 'value': '36-60'},
+                                                {'label': '60+ ans', 'value': '60+'}
+                                            ],
+                                            placeholder="Sélectionner une tranche d'âge",
+                                            className="mb-3"
+                                        )
+                                    ], className="mb-3"),
+                              
                     ])
                 ])
             ], className="mb-4", style={'position': 'relative', 'zIndex': 1000}),
@@ -379,16 +443,16 @@ class HealthAnalysisPage:
                 #             children=f"{(returning_donors / total_donors * 100):.1f}%", 
                 #             className="stat-value text-info"),
                 #         html.P("Participants Fidèles", className="stat-label"),
-                #         html.Small(f"{returning_donors} Participants Fidèles", className="stat-detail")
+                #         html.Smallf(f"{returning_donors} Participants Fidèles", className="stat-detail")
                 #     ], className="stat-card")
                 # ], xs=12, sm=6, md=4, lg=4, className="mb-3")
 
             ], className="mb-4"),
             
             # Contenu principal
-            dbc.Row([
+            #dbc.Row([
                 # Première colonne (plus petite)
-                dbc.Col([
+                #dbc.Col([
                     # Top 3 problèmes de santé
                     # dbc.Card([
                     #     dbc.CardHeader("Top 3 des problèmes de santé"),
@@ -410,10 +474,10 @@ class HealthAnalysisPage:
                     #         )
                     #     ])
                     # ])
-                ], width=4),
+                #], width=4),
                 
                 # Deuxième colonne (plus grande)
-                dbc.Col([
+                dbc.Row([
                     # Raisons d'indisponibilité temporaire
                     dbc.Card([
                         dbc.CardHeader("Raisons d'indisponibilité temporaire"),
@@ -423,8 +487,9 @@ class HealthAnalysisPage:
                                 config={'displayModeBar': False}
                             )
                         ])
-                    ], className="mb-4"),
-                    
+                    ], className="chart-card mb-4"),
+                ] ),
+                dbc.Row([   
                     # Analyse par zone géographique
                     dbc.Card([
                         dbc.CardHeader("Analyse par zone géographique"),
@@ -434,9 +499,9 @@ class HealthAnalysisPage:
                                 config={'displayModeBar': False}
                             )
                         ])
-                    ])
-                ], width=8)
-            ],  className="retention-container"),
+                    ], className="chart-card mb-4")
+                ] ),
+            #],  className="chart-card mb-4"),
             
             # Graphique des problèmes de santé en bas
             dbc.Row([

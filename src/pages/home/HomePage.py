@@ -347,12 +347,7 @@ class HomePage:
                     ], width=12, lg=9),
                 ], className="mb-4"),
 
-                dbc.Row([
-                    dbc.Col([
-                        html.H2("Résumé des analyses clés", className="mb-4 mt-5 text-black"),
-                        html.Hr(),
-                    ], md=12)
-                ]),
+              
 
 
                 # Graphiques
