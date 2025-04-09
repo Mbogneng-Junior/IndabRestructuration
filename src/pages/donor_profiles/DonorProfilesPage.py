@@ -21,14 +21,14 @@ class DonorProfilesPage:
         self._cache = {}
 
     def init_callbacks(self, app):
-        @app.callback(
-            Output('location-filter', 'options'),
-            [Input('url', 'pathname')]
-        )
-        def update_location_options(_):
-            df = self.data_service.get_donor_data()
-            locations = df['arrondissement_de_residence'].unique()
-            return [{'label': loc, 'value': loc} for loc in sorted(locations)]
+        # @app.callback(
+        #     # Output('location-filter', 'options'),
+        #     [Input('url', 'pathname')]
+        # )
+        # def update_location_options(_):
+        #     df = self.data_service.get_donor_data()
+        #     locations = df['arrondissement_de_residence'].unique()
+        #     return [{'label': loc, 'value': loc} for loc in sorted(locations)]
         
 
         
@@ -36,17 +36,18 @@ class DonorProfilesPage:
             [Output('cluster-scatter', 'figure'),
              Output('cluster-characteristics', 'children'),
              Output('ideal-donor-profile', 'children')],
-            [Input('location-filter', 'value'),
-             Input('eligibility-filter', 'value'),
+            [
+            #  Input('location-filter', 'value'),
+            #  Input('eligibility-filter', 'value'),
              Input('cluster-slider', 'value')]
         )
-        def update_clustering(location, eligibility, n_clusters):
+        def update_clustering(n_clusters):
             try:
                 df = self.data_service.get_donor_data()
-                if location:
-                    df = df[df['arrondissement_de_residence'] == location]
-                if eligibility:
-                    df = df[df['eligibilite_au_don'] == eligibility]
+                # if location:
+                #     df = df[df['arrondissement_de_residence'] == location]
+                # if eligibility:
+                #     df = df[df['eligibilite_au_don'] == eligibility]
                 
 
                 binary_columns = [col for col in df.columns if col.startswith('raison_')]
@@ -151,16 +152,19 @@ class DonorProfilesPage:
              Output('education-distribution', 'figure'),
              Output('marital-distribution', 'figure'),
              Output('gender-distribution', 'figure')],
-            [Input('location-filter', 'value'),
-             Input('eligibility-filter', 'value')]
+            [
+            # Input('location-filter', 'value'),
+            #  Input('eligibility-filter', 'value')
+                Input('url', 'pathname')
+            ]
         )
-        def update_graphs(location, eligibility):
+        def update_graphs(_):
             df = self.data_service.get_donor_data()
 
-            if location:
-                df = df[df['arrondissement_de_residence'] == location]
-            if eligibility:
-                df = df[df['eligibilite_au_don'] == eligibility]
+            # if location:
+            #     df = df[df['arrondissement_de_residence'] == location]
+            # if eligibility:
+            #     df = df[df['eligibilite_au_don'] == eligibility]
 
             # Age distribution
             age_fig = px.histogram(df, x='age', nbins=20, title='Distribution par âge', color='eligibilite_au_don', barmode='stack',
@@ -330,15 +334,15 @@ class DonorProfilesPage:
         
         return table
 
-    def _update_graphs(self, location, eligibility):
+    def _update_graphs(self):
         df = self.data_service.get_donor_data()
         
         try:
             # Appliquer les filtres
-            if location:
-                df = df[df['arrondissement_de_residence'] == location]
-            if eligibility:
-                df = df[df['eligibilite_au_don'] == eligibility]
+            # if location:
+            #     df = df[df['arrondissement_de_residence'] == location]
+            # if eligibility:
+            #     df = df[df['eligibilite_au_don'] == eligibility]
             
             # Distribution par âge
             age_fig = px.histogram(
@@ -453,41 +457,6 @@ class DonorProfilesPage:
                         dbc.CardBody([
                             dbc.Row([
                                 dbc.Col([
-                                    html.Label("Localisation"),
-                                    dcc.Dropdown(
-                                        id='location-filter',
-                                        placeholder="Sélectionner un arrondissement",
-                                        className="mb-2",
-                                        style={'zIndex': 9999}
-                                    )
-                                ], md=4),
-                                dbc.Col([
-                                    html.Label("Statut d'éligibilité"),
-                                    dcc.Dropdown(
-                                        id='eligibility-filter',
-                                        options=[
-                                            {'label': 'Éligible', 'value': 'eligible'},
-                                            {'label': 'Non éligible', 'value': 'ineligible'}
-                                        ],
-                                        placeholder="Sélectionner un statut",
-                                        className="mb-2"
-                                    )
-                                ], md=4),
-                                dbc.Col([
-                                    html.Label("Nombre de groupes"),
-                                    dcc.Slider(
-                                        id='cluster-slider',
-                                        min=2,
-                                        max=6,
-                                        step=1,
-                                        value=3,
-                                        marks={i: str(i) for i in range(2, 7)},
-                                        className="mt-2"
-                                    )
-                                ], md=4)
-                            ]),
-                            dbc.Row([
-                                dbc.Col([
                                     html.Label("Ville"),
                                     dcc.Dropdown(
                                         id='ville-filter',
@@ -516,6 +485,41 @@ class DonorProfilesPage:
                                     )
                                 ], md=4),
                             ])
+                        ]),
+                        dbc.Row([
+                            # dbc.Col([
+                            #     html.Label("Localisation"),
+                            #     dcc.Dropdown(
+                            #         id='location-filter',
+                            #         placeholder="Sélectionner un arrondissement",
+                            #         className="mb-2",
+                            #         style={'zIndex': 9999}
+                            #     )
+                            # ], md=4),
+                            # dbc.Col([
+                            #     html.Label("Statut d'éligibilité"),
+                            #     dcc.Dropdown(
+                            #         id='eligibility-filter',
+                            #         options=[
+                            #             {'label': 'Éligible', 'value': 'eligible'},
+                            #             {'label': 'Non éligible', 'value': 'ineligible'}
+                            #         ],
+                            #         placeholder="Sélectionner un statut",
+                            #         className="mb-2"
+                            #     )
+                            # ], md=4),
+                            dbc.Col([
+                                html.Label("Nombre de groupes"),
+                                dcc.Slider(
+                                    id='cluster-slider',
+                                    min=2,
+                                    max=6,
+                                    step=1,
+                                    value=3,
+                                    marks={i: str(i) for i in range(2, 7)},
+                                    className="mt-2"
+                                )
+                            ], md=4)
                         ])
                     ], className="mb-4")
                 ])
